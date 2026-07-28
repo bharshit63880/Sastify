@@ -2,6 +2,7 @@ import { axiosi, publicAxios } from "../../config/axios";
 
 const productRequestCache = new Map();
 const PRODUCT_CACHE_TTL = 60 * 1000;
+const PRODUCT_LIST_TIMEOUT = 15000;
 const PRODUCT_DETAIL_TIMEOUT = 15000;
 
 const appendValues = (params, key, value) => {
@@ -63,15 +64,22 @@ export const fetchProducts = async (filters = {}) => {
     const cached = productRequestCache.get(requestKey);
     if (cached && Date.now() - cached.savedAt < PRODUCT_CACHE_TTL) return cached.value;
 
-    try {
-        const res = await publicAxios.get(`/products?${params.toString()}`, { timeout: 8000 });
-        const totalResults = Number(res.headers['x-total-count'] || 0);
-        const value = { data: res.data, totalResults };
-        productRequestCache.set(requestKey, { savedAt: Date.now(), value });
-        return value;
-    } catch (error) {
-        throw error.response?.data || error;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+            const res = await publicAxios.get(`/products?${params.toString()}`, { timeout: PRODUCT_LIST_TIMEOUT });
+            const totalResults = Number(res.headers['x-total-count'] || 0);
+            const value = { data: res.data, totalResults };
+            productRequestCache.set(requestKey, { savedAt: Date.now(), value });
+            return value;
+        } catch (error) {
+            const shouldRetry = !error.response && attempt === 0;
+            if (!shouldRetry) {
+                throw error.response?.data || new Error("We could not load products. Please try again.");
+            }
+        }
     }
+
+    throw new Error("We could not load products. Please try again.");
 };
 
 export const fetchProductById = async (id) => {

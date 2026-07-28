@@ -14,12 +14,12 @@ const getStoredAuthToken = () => {
 export const axiosi = axios.create({
   withCredentials: true,
   baseURL,
-  timeout: 8000,
+  timeout: 15000,
 })
 
 export const publicAxios = axios.create({
   baseURL,
-  timeout: 8000,
+  timeout: 15000,
 })
 
 axiosi.interceptors.request.use((config) => {

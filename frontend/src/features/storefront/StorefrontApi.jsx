@@ -33,7 +33,7 @@ export const fetchStorefrontHome = async () => {
   const cached = typeof window !== "undefined" ? readHomeCache() : null;
   if (cached) return cached;
   try {
-    const res = await publicAxios.get("/storefront/home", { timeout: 6000 });
+    const res = await publicAxios.get("/storefront/home", { timeout: 15000 });
     if (typeof window !== "undefined") writeHomeCache(res.data);
     return res.data;
   } catch (error) {
