@@ -212,19 +212,12 @@ const appendReviewSummary = async (product) => {
         reviewCount: product.ratingCount || product.reviewCount || 0,
     };
 
-    if (
-        product.rating !== stats.rating ||
-        product.reviewCount !== stats.reviewCount ||
-        product.ratingAverage !== stats.rating ||
-        product.ratingCount !== stats.reviewCount
-    ) {
-        await Product.findByIdAndUpdate(product._id, {
-            rating: Number((stats.rating || 0).toFixed(1)),
-            reviewCount: stats.reviewCount || 0,
-            ratingAverage: Number((stats.rating || 0).toFixed(1)),
-            ratingCount: stats.reviewCount || 0,
-        });
-    }
+    return {
+        rating: Number((stats.rating || 0).toFixed(1)),
+        reviewCount: stats.reviewCount || 0,
+        ratingAverage: Number((stats.rating || 0).toFixed(1)),
+        ratingCount: stats.reviewCount || 0,
+    };
 };
 
 exports.create = async (req, res) => {
@@ -267,25 +260,28 @@ exports.getById = async (req, res) => {
     try {
         const { id } = req.params;
         const filter = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { slug: id };
-        const product = await Product.findOne(filter).populate("brand").populate("category");
+        const product = await Product.findOne(filter).populate("brand").populate("category").lean();
 
         if (!product || product.isDeleted || product.status === "inactive") {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        await appendReviewSummary(product);
-
-        const relatedProducts = await Product.find({
-            _id: { $ne: product._id },
-            category: product.category?._id,
-            isDeleted: false,
-            status: "active",
-        })
-            .populate("brand")
-            .limit(8);
+        const [reviewSummary, relatedProducts] = await Promise.all([
+            appendReviewSummary(product),
+            Product.find({
+                _id: { $ne: product._id },
+                category: product.category?._id,
+                isDeleted: false,
+                status: "active",
+            })
+                .populate("brand")
+                .limit(8)
+                .lean(),
+        ]);
 
         res.status(200).json({
-            ...product.toObject(),
+            ...product,
+            ...reviewSummary,
             relatedProducts,
         });
     } catch (error) {

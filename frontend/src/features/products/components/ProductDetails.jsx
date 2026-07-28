@@ -140,7 +140,16 @@ export const ProductDetails = () => {
   };
 
   if (productStatus === "pending" || (productStatus === "idle" && !product)) return <ProductDetailsSkeleton />;
-  if (productStatus === "rejected" || !product?._id) return <EmptyState title="Product unavailable" description={productError?.message || "This product may have moved or is no longer available."} actionLabel="Back to catalog" actionTo="/products" />;
+  if (productStatus === "rejected" || !product?._id) return (
+    <EmptyState
+      title="Product unavailable"
+      description={productError?.message || "This product may have moved or is temporarily unavailable."}
+      actionLabel="Try again"
+      onAction={() => dispatch(fetchProductByIdAsync(id))}
+      secondaryActionLabel="Back to catalog"
+      secondaryActionTo="/products"
+    />
+  );
 
   const purchasePanel = (
     <div ref={purchaseRef} className="space-y-6">

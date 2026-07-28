@@ -2,6 +2,7 @@ import { axiosi, publicAxios } from "../../config/axios";
 
 const productRequestCache = new Map();
 const PRODUCT_CACHE_TTL = 60 * 1000;
+const PRODUCT_DETAIL_TIMEOUT = 15000;
 
 const appendValues = (params, key, value) => {
     if (!value) {
@@ -74,12 +75,19 @@ export const fetchProducts = async (filters = {}) => {
 };
 
 export const fetchProductById = async (id) => {
-    try {
-        const res = await publicAxios.get(`/products/${id}`, { timeout: 8000 });
-        return res.data;
-    } catch (error) {
-        throw error.response?.data || error;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+            const res = await publicAxios.get(`/products/${id}`, { timeout: PRODUCT_DETAIL_TIMEOUT });
+            return res.data;
+        } catch (error) {
+            const shouldRetry = !error.response && attempt === 0;
+            if (!shouldRetry) {
+                throw error.response?.data || new Error("We could not load this product. Please try again.");
+            }
+        }
     }
+
+    throw new Error("We could not load this product. Please try again.");
 };
 
 export const updateProductById = async (update) => {
