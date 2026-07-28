@@ -42,10 +42,11 @@ const isLocalOrigin = (origin = "") => {
     }
 };
 
-const allowedOrigins = (process.env.ORIGIN || "http://localhost:3000")
-    .split(",")
-    .map(normalizeOrigin)
-    .filter(Boolean);
+const allowedOrigins = new Set([
+    "https://sastify-frontend.vercel.app",
+    "http://localhost:3000",
+    ...(process.env.ORIGIN || "").split(","),
+].map(normalizeOrigin).filter(Boolean));
 
 server.use(
     cors({
@@ -57,7 +58,7 @@ server.use(
 
             const normalizedOrigin = normalizeOrigin(origin);
             const isAllowed =
-                allowedOrigins.includes(normalizedOrigin) ||
+                allowedOrigins.has(normalizedOrigin) ||
                 (process.env.ALLOW_VERCEL_PREVIEWS === "true" && isVercelOrigin(normalizedOrigin)) ||
                 isLocalOrigin(normalizedOrigin);
 
