@@ -24,6 +24,7 @@ import {
 } from "../ProductSlice";
 import { ProductCard } from "./ProductCard";
 import { ProductVisual } from "./ProductVisual";
+import { rememberViewedProduct } from "../../home/recentlyViewed";
 
 export const ProductDetails = () => {
   const { id } = useParams();
@@ -52,6 +53,7 @@ export const ProductDetails = () => {
   useEffect(() => {
     setSelectedImage(0);
     setQuantity(1);
+    if (product?._id) rememberViewedProduct(product._id);
   }, [product?._id]);
 
   const galleryImages = useMemo(() => {

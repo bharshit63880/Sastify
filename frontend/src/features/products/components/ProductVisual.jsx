@@ -178,6 +178,12 @@ const getFallbackImage = (product) => {
   );
 };
 
+export const getProductVisualSource = (product, index = 0) => {
+  const images = product?.images?.filter(Boolean) || [];
+  if (index > 0 && images[index]) return images[index];
+  return product?.thumbnail || images[0] || getFallbackImage(product);
+};
+
 export const shouldUseGeneratedVisual = (product) => {
   const image = product?.thumbnail || product?.images?.[0] || "";
 
@@ -185,11 +191,11 @@ export const shouldUseGeneratedVisual = (product) => {
 };
 
 export const ProductVisual = ({ product, className = "", imageClassName = "", alt }) => {
-  const image = product?.thumbnail || product?.images?.[0] || "";
+  const image = getProductVisualSource(product);
 
   return (
     <img
-      src={shouldUseGeneratedVisual(product) ? getFallbackImage(product) : image}
+      src={image}
       alt={alt}
       loading="lazy"
       className={cn("h-full w-full object-cover", className, imageClassName)}

@@ -27,6 +27,8 @@ export const fetchProducts = async (filters = {}) => {
 
     appendValues(params, 'brand', filters.brand);
     appendValues(params, 'category', filters.category);
+    appendValues(params, 'color', filters.color);
+    appendValues(params, 'size', filters.size);
 
     if (filters.search) params.set('search', filters.search);
   if (filters.minPrice !== undefined) params.set('minPrice', filters.minPrice);
@@ -54,7 +56,7 @@ export const fetchProducts = async (filters = {}) => {
     }
 
     try {
-        const res = await publicAxios.get(`/products?${params.toString()}`);
+        const res = await publicAxios.get(`/products?${params.toString()}`, { timeout: 8000 });
         const totalResults = Number(res.headers['x-total-count'] || 0);
         return { data: res.data, totalResults };
     } catch (error) {
@@ -64,7 +66,7 @@ export const fetchProducts = async (filters = {}) => {
 
 export const fetchProductById = async (id) => {
     try {
-        const res = await publicAxios.get(`/products/${id}`);
+        const res = await publicAxios.get(`/products/${id}`, { timeout: 8000 });
         return res.data;
     } catch (error) {
         throw error.response?.data || error;

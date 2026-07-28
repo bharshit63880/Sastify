@@ -9,9 +9,10 @@ export const SearchResultsPage = () => {
 
   return (
     <ProductList
-      title={`Search results for "${query}"`}
-      description="Refine by price, rating, category, and brand to find the best fit faster."
+      title={query ? `Search results for “${query}”` : "Search the catalogue"}
+      description={query ? "Refine the current search with filters and sorting." : "Enter a search term from the global search command."}
       baseFilters={baseFilters}
+      breadcrumbs={[{ label: "Home", to: "/" }, { label: "Search" }]}
     />
   );
 };

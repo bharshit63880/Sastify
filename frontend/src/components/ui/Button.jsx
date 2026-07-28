@@ -1,71 +1,84 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { cn } from "../../utils/cn";
 
-const styles = {
-  primary:
-    "border border-primary bg-primary text-white shadow-[0_14px_34px_rgba(17,17,17,0.16)] hover:bg-[#222222] hover:shadow-[0_20px_44px_rgba(17,17,17,0.2)]",
-  secondary:
-    "border border-border bg-white text-textPrimary shadow-[0_10px_26px_rgba(17,17,17,0.05)] hover:border-primary/15 hover:bg-surface",
-  ghost:
-    "border border-transparent bg-transparent text-textSecondary hover:bg-white hover:text-textPrimary",
+const variants = {
+  primary: "border border-brand-primary bg-brand-primary text-white shadow-sm hover:brightness-105",
+  secondary: "border border-default bg-surface-raised text-primary shadow-xs hover:border-strong hover:bg-surface-muted",
+  outline: "border border-strong bg-transparent text-primary hover:border-brand-primary hover:text-brand-primary",
+  ghost: "border border-transparent bg-transparent text-secondary hover:bg-surface-muted hover:text-primary",
+  danger: "border border-error bg-error text-white shadow-xs hover:brightness-105",
+  glass: "border border-glass bg-glass text-primary shadow-glass backdrop-blur-xl hover:border-strong",
+  gradient: "border border-transparent bg-brand-gradient text-white shadow-glow hover:brightness-105",
 };
 
-export const Button = ({
+const sizes = {
+  sm: "min-h-9 px-4 py-2 text-xs",
+  md: "min-h-11 px-5 py-3 text-sm",
+  lg: "min-h-[52px] px-6 py-3.5 text-base",
+  icon: "h-11 w-11 p-0",
+  small: "min-h-9 px-4 py-2 text-xs",
+  medium: "min-h-11 px-5 py-3 text-sm",
+  large: "min-h-[52px] px-6 py-3.5 text-base",
+};
+
+const Spinner = () => <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />;
+
+export const Button = React.forwardRef(({
   className = "",
   children,
   variant = "primary",
+  size = "md",
   to,
   href,
   icon,
+  leftIcon,
+  rightIcon,
   fullWidth = false,
   disabled = false,
+  loading = false,
   type = "button",
   ...props
-}) => {
+}, ref) => {
+  const reduceMotion = useReducedMotion();
+  const isDisabled = disabled || loading;
   const sharedClassName = cn(
-    "inline-flex items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold tracking-[-0.01em] transition duration-200",
-    styles[variant],
+    "inline-flex items-center justify-center gap-2 rounded-pill font-semibold tracking-[-0.01em]",
+    "transition-[color,background-color,border-color,box-shadow,filter,transform] duration-normal ease-standard",
+    "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/25",
+    variants[variant] || variants.primary,
+    sizes[size] || sizes.md,
     fullWidth && "w-full",
-    disabled && "cursor-not-allowed opacity-60",
+    isDisabled && "pointer-events-none cursor-not-allowed opacity-55",
     className
   );
 
   const content = (
     <>
-      {icon ? <span className="text-base">{icon}</span> : null}
-      <span>{children}</span>
+      {loading ? <Spinner /> : (leftIcon || icon) ? <span className="shrink-0 text-base" aria-hidden="true">{leftIcon || icon}</span> : null}
+      {children != null ? <span>{children}</span> : null}
+      {rightIcon ? <span className="shrink-0 text-base" aria-hidden="true">{rightIcon}</span> : null}
     </>
   );
 
-  if (to) {
-    return (
-      <Link className={sharedClassName} to={to} {...props}>
-        {content}
-      </Link>
-    );
-  }
-
-  if (href) {
-    return (
-      <a className={sharedClassName} href={href} {...props}>
-        {content}
-      </a>
-    );
-  }
+  if (to) return <Link ref={ref} className={sharedClassName} to={to} aria-disabled={isDisabled || undefined} {...props}>{content}</Link>;
+  if (href) return <a ref={ref} className={sharedClassName} href={href} aria-disabled={isDisabled || undefined} {...props}>{content}</a>;
 
   return (
     <motion.button
-      whileHover={disabled ? undefined : { scale: 1.01, y: -1 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      ref={ref}
+      whileTap={!isDisabled && !reduceMotion ? { scale: 0.975 } : undefined}
+      transition={{ duration: 0.14 }}
       className={sharedClassName}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       type={type}
       {...props}
     >
       {content}
     </motion.button>
   );
-};
+});
+
+Button.displayName = "Button";

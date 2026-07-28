@@ -5,7 +5,7 @@ export const createWishlistItem=async(data)=>{
         const res=await axiosi.post("/wishlist",data)
         return res.data
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error
     }
 }
 
@@ -15,7 +15,7 @@ export const fetchWishlistByUserId=async(id)=>{
         const totalResults=await res.headers.get("X-Total-Count")
         return {data:res.data,totalResults:totalResults}
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error
     }
 }
 
@@ -24,7 +24,7 @@ export const updateWishlistItemById=async(update)=>{
         const res=await axiosi.patch(`/wishlist/${update._id}`,update)
         return res.data
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error
     }
 }
 
@@ -33,6 +33,6 @@ export const deleteWishlistItemById=async(id)=>{
         const res=await axiosi.delete(`/wishlist/${id}`)
         return res.data
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error
     }
 }

@@ -23,6 +23,8 @@ const buildPublicProductFilter = (query = {}, isAdminRequest = false) => {
     const filter = {};
     const categories = parseArrayFilter(query.category);
     const brands = parseArrayFilter(query.brand);
+    const colors = parseArrayFilter(query.color);
+    const sizes = parseArrayFilter(query.size);
 
     if (!isAdminRequest) {
         filter.isDeleted = false;
@@ -35,6 +37,14 @@ const buildPublicProductFilter = (query = {}, isAdminRequest = false) => {
 
     if (brands.length) {
         filter.brand = { $in: brands };
+    }
+
+    if (colors.length) {
+        filter.colors = { $in: colors.map((color) => new RegExp(`^${String(color).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")) };
+    }
+
+    if (sizes.length) {
+        filter.sizes = { $in: sizes.map((size) => new RegExp(`^${String(size).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")) };
     }
 
     if (query.search) {

@@ -62,13 +62,6 @@ export const CategoryPage = () => {
   }, [categoryNode, nodesById, roots]);
 
   const headerContent = useMemo(() => {
-    const categoryCount = categoryNode?.children.length || leafScope.length || 0;
-    const description = categoryNode
-      ? categoryNode.children.length
-        ? `Shop across ${categoryCount} focused subcategories in ${categoryNode.name}.`
-        : `A refined edit of best-value picks in ${categoryNode.name}.`
-      : "Explore curated departments with cleaner navigation and faster filtering.";
-
     const relatedLabel = categoryNode?.children.length ? "Subcategories" : "Keep browsing";
 
     return (
@@ -106,7 +99,7 @@ export const CategoryPage = () => {
               ))
             )}
           </div>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-textSecondary">{description}</p>
+          {categoryNode?.description ? <p className="mt-4 max-w-2xl text-sm leading-6 text-textSecondary">{categoryNode.description}</p> : null}
         </div>
 
         {relatedCategories.length ? (
@@ -148,18 +141,22 @@ export const CategoryPage = () => {
         ) : null}
       </div>
     );
-  }, [ancestry, categoryNode, leafScope.length, nodesById, relatedCategories, roots]);
+  }, [ancestry, categoryNode, nodesById, relatedCategories, roots]);
 
   return (
     <ProductList
       title={category?.name || "Category"}
-      description={
-        category?.name
-          ? `Browse premium picks, sharper pricing, and cleaner product discovery across ${category.name}.`
-          : "Browse premium picks, sharper pricing, and cleaner product discovery across the marketplace."
-      }
+      description={category?.description || ""}
       baseFilters={baseFilters}
       headerContent={headerContent}
+      breadcrumbs={[
+        { label: "Home", to: "/" },
+        { label: "Products", to: "/products" },
+        ...ancestry.map((item, index) => ({
+          label: item.name,
+          to: index < ancestry.length - 1 ? getCategoryHref(item) : undefined,
+        })),
+      ]}
     />
   );
 };

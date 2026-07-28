@@ -1,530 +1,219 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { FiFilter, FiSliders, FiX } from "react-icons/fi";
+import { FiChevronRight, FiFilter, FiGrid, FiList, FiRotateCcw, FiSliders, FiX } from "react-icons/fi";
+import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { EmptyState } from "../../../components/EmptyState";
-import { LoadingState } from "../../../components/LoadingState";
 import { Button } from "../../../components/ui/Button";
-import { Input } from "../../../components/ui/Input";
-import { PageWrapper } from "../../../components/ui/PageWrapper";
-import { Section } from "../../../components/ui/Section";
+import { Drawer } from "../../../components/ui/Drawer";
+import { IconButton } from "../../../components/ui/IconButton";
+import { ProductGridSkeleton } from "../../../components/ui/Skeleton";
 import { ITEMS_PER_PAGE } from "../../../constants";
+import {
+  parseDiscoveryParams,
+  toggleArrayValue,
+  updateDiscoveryParams,
+} from "../../discovery/discoveryParams";
 import { selectBrands } from "../../brands/BrandSlice";
 import { selectCategories } from "../../categories/CategoriesSlice";
 import { fetchProducts } from "../ProductApi";
 import { ProductCard } from "./ProductCard";
 
 const sortOptions = [
-  { label: "Most Popular", value: "relevance" },
-  { label: "Price: Low to High", value: "price-asc" },
-  { label: "Price: High to Low", value: "price-desc" },
-  { label: "Newest", value: "newest" },
-  { label: "Best Rated", value: "rating" },
-  { label: "Discount", value: "discount" },
-  { label: "Best Sellers", value: "sales" },
+  ["relevance", "Featured"],
+  ["newest", "Newest"],
+  ["price-asc", "Price: low to high"],
+  ["price-desc", "Price: high to low"],
+  ["rating", "Best rated"],
+  ["discount", "Biggest discount"],
+  ["sales", "Best sellers"],
 ];
-
 const EMPTY_BASE_FILTERS = Object.freeze({});
 
-const FilterChip = ({ active, children, onClick, disabled = false }) => (
-  <button
-    type="button"
-    disabled={disabled}
-    onClick={onClick}
-    className={[
-      "rounded-full border px-4 py-2 text-sm font-medium transition",
-      active
-        ? "border-primary bg-primary text-white"
-        : "border-border bg-white text-textSecondary hover:border-primary/15 hover:text-textPrimary",
-      disabled ? "cursor-not-allowed opacity-40" : "",
-    ].join(" ")}
-  >
-    {children}
-  </button>
+const CheckList = ({ legend, items, selected, onToggle, getLabel = (item) => item.name }) => {
+  if (!items.length) return null;
+  return (
+    <fieldset className="space-y-3">
+      <legend className="text-label text-text-secondary">{legend}</legend>
+      <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+        {items.map((item) => {
+          const value = String(item._id || item.value || item);
+          const label = getLabel(item);
+          return (
+            <label key={value} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm text-primary transition hover:bg-surface-muted">
+              <input type="checkbox" checked={selected.includes(value)} onChange={() => onToggle(value)} className="h-4 w-4 rounded border-default accent-brand-primary" />
+              <span className="min-w-0 flex-1 truncate">{label}</span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+};
+
+const ChoiceButtons = ({ legend, values, active, onChange, suffix = "" }) => (
+  <fieldset>
+    <legend className="text-label text-text-secondary">{legend}</legend>
+    <div className="mt-3 flex flex-wrap gap-2">
+      {values.map((value) => <button key={value} type="button" aria-pressed={active === value} onClick={() => onChange(active === value ? 0 : value)} className={`rounded-pill border px-3 py-2 text-sm font-medium ${active === value ? "border-brand-primary bg-brand-primary text-white" : "border-default bg-surface-raised text-primary hover:border-strong"}`}>{value}{suffix}</button>)}
+    </div>
+  </fieldset>
 );
 
-const FilterPanel = ({ filters, setFilters, categories, availableBrands, lockedCategoryIds = [] }) => (
-  <div className="space-y-7">
-    <div className="flex items-center justify-between border-b border-border pb-4">
-      <p className="text-lg font-semibold text-textPrimary">Filters</p>
-      <FiSliders className="text-textSecondary" />
-    </div>
-
-    <div className="space-y-4">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Categories</p>
-      {lockedCategoryIds.length ? (
-        <p className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-textSecondary">
-          Category scope is fixed for this page. Use the category links above to move across departments.
-        </p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <FilterChip
-              key={category._id}
-              active={filters.category.includes(category._id)}
-              disabled={Boolean(lockedCategoryIds.length && !lockedCategoryIds.includes(category._id))}
-              onClick={() => {
-                if (lockedCategoryIds.length) return;
-
-                setFilters((prev) => ({
-                  ...prev,
-                  category: prev.category.includes(category._id) ? [] : [category._id],
-                }));
-              }}
-            >
-              {category.name}
-            </FilterChip>
-          ))}
-        </div>
-      )}
-    </div>
-
-    <div className="space-y-4">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Brands</p>
-      {filters.category.length ? (
-        <div className="flex flex-wrap gap-2">
-          {availableBrands.length ? (
-            availableBrands.map((brand) => (
-              <FilterChip
-                key={brand._id}
-                active={filters.brand.includes(brand._id)}
-                onClick={() =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    brand: prev.brand.includes(brand._id)
-                      ? prev.brand.filter((item) => item !== brand._id)
-                      : [...prev.brand, brand._id],
-                  }))
-                }
-              >
-                {brand.name}
-              </FilterChip>
-            ))
-          ) : (
-            <p className="text-sm text-textSecondary">No matching brands for this category.</p>
-          )}
-        </div>
-      ) : (
-        <p className="text-sm text-textSecondary">Choose a category to narrow the available brands.</p>
-      )}
-    </div>
-
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-      <Input
-        label="Min price"
-        type="number"
-        value={filters.priceRange[0]}
-        onChange={(event) =>
-          setFilters((prev) => ({ ...prev, priceRange: [Number(event.target.value || 0), prev.priceRange[1]] }))
-        }
-      />
-      <Input
-        label="Max price"
-        type="number"
-        value={filters.priceRange[1]}
-        onChange={(event) =>
-          setFilters((prev) => ({ ...prev, priceRange: [prev.priceRange[0], Number(event.target.value || 0)] }))
-        }
-      />
-    </div>
-
-    <div className="space-y-4">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Rating</p>
-      <div className="flex flex-wrap gap-2">
-        {[4, 3, 2].map((rating) => (
-          <FilterChip
-            key={rating}
-            active={filters.rating === rating}
-            onClick={() => setFilters((prev) => ({ ...prev, rating: prev.rating === rating ? 0 : rating }))}
-          >
-            {rating}+ stars
-          </FilterChip>
-        ))}
+const FilterPanel = ({ filters, apply, categories, brands, colors, sizes, lockedCategoryIds, onClose }) => {
+  const categorySelection = lockedCategoryIds.length ? lockedCategoryIds : filters.category;
+  return (
+    <div className="space-y-7">
+      <div className="flex items-center justify-between border-b border-default pb-4">
+        <div><p className="text-label text-brand-primary">Refine</p><h2 className="mt-1 text-xl font-semibold text-primary">Filters</h2></div>
+        {onClose ? <IconButton label="Close filters" onClick={onClose}><FiX /></IconButton> : <FiSliders className="text-text-secondary" />}
       </div>
-    </div>
-
-    <div className="space-y-4">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Discount</p>
-      <div className="flex flex-wrap gap-2">
-        {[10, 25, 40].map((discount) => (
-          <FilterChip
-            key={discount}
-            active={filters.discount === discount}
-            onClick={() => setFilters((prev) => ({ ...prev, discount: prev.discount === discount ? 0 : discount }))}
-          >
-            {discount}%+
-          </FilterChip>
-        ))}
+      {lockedCategoryIds.length ? <p className="rounded-xl border border-default bg-surface-muted p-3 text-sm leading-6 text-text-secondary">This category page keeps its current category scope.</p> : <CheckList legend="Category" items={categories} selected={categorySelection} onToggle={(value) => apply({ category: toggleArrayValue(filters.category, value) })} />}
+      <CheckList legend="Brand" items={brands} selected={filters.brand} onToggle={(value) => apply({ brand: toggleArrayValue(filters.brand, value) })} />
+      <div className="grid grid-cols-2 gap-3">
+        <label className="text-sm text-text-secondary">Minimum price<input type="number" min="0" value={filters.minPrice || ""} onChange={(event) => apply({ minPrice: Number(event.target.value) || "" })} className="input-base mt-2" /></label>
+        <label className="text-sm text-text-secondary">Maximum price<input type="number" min="0" value={filters.maxPrice || ""} onChange={(event) => apply({ maxPrice: Number(event.target.value) || "" })} className="input-base mt-2" /></label>
       </div>
+      <ChoiceButtons legend="Minimum rating" values={[4, 3, 2]} active={filters.rating} onChange={(rating) => apply({ rating })} suffix="+ stars" />
+      <ChoiceButtons legend="Minimum discount" values={[10, 25, 40]} active={filters.discount} onChange={(discount) => apply({ discount })} suffix="%+" />
+      <CheckList legend="Color" items={colors.map((value) => ({ value }))} selected={filters.color} onToggle={(value) => apply({ color: toggleArrayValue(filters.color, value) })} getLabel={(item) => item.value} />
+      <CheckList legend="Size" items={sizes.map((value) => ({ value }))} selected={filters.size} onToggle={(value) => apply({ size: toggleArrayValue(filters.size, value) })} getLabel={(item) => item.value} />
+      {[["inStock", "In stock only"], ["trending", "Trending only"], ["bestseller", "Best sellers only"]].map(([key, label]) => (
+        <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-default bg-surface-raised px-3 text-sm font-medium text-primary">
+          <input type="checkbox" checked={filters[key]} onChange={(event) => apply({ [key]: event.target.checked })} className="h-4 w-4 accent-brand-primary" />{label}
+        </label>
+      ))}
     </div>
-
-    <label className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-textPrimary">
-      <input
-        type="checkbox"
-        checked={filters.inStock}
-        onChange={(event) => setFilters((prev) => ({ ...prev, inStock: event.target.checked }))}
-        className="h-4 w-4 rounded border-border accent-primary"
-      />
-      In stock only
-    </label>
-  </div>
-);
+  );
+};
 
 export const ProductList = ({
   title = "All products",
-  description = "Explore the full catalog with simple filters, lighter surfaces, and cleaner product comparison.",
-  baseFilters,
+  description = "Explore the current catalogue.",
+  baseFilters: incomingBaseFilters,
   headerContent = null,
+  breadcrumbs = [{ label: "Home", to: "/" }, { label: "Products" }],
 }) => {
-  const brands = useSelector(selectBrands);
+  const allBrands = useSelector(selectBrands);
   const categories = useSelector(selectCategories);
-
-  const [page, setPage] = useState(1);
-  const [sort, setSort] = useState("relevance");
+  const baseFilters = useMemo(() => incomingBaseFilters || EMPTY_BASE_FILTERS, [incomingBaseFilters]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = useMemo(() => parseDiscoveryParams(searchParams), [searchParams]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
-  const [productFetchStatus, setProductFetchStatus] = useState("idle");
-  const stableBaseFilters = useMemo(() => baseFilters || EMPTY_BASE_FILTERS, [baseFilters]);
-  const normalizedBaseCategory = useMemo(
-    () => (Array.isArray(stableBaseFilters?.category) ? stableBaseFilters.category : []),
-    [stableBaseFilters]
-  );
-  const baseCategoryKey = normalizedBaseCategory.join("|");
-  const baseSearch = stableBaseFilters?.search || "";
-  const [filters, setFilters] = useState({
-    category: normalizedBaseCategory,
-    brand: [],
-    priceRange: [0, 250000],
-    rating: 0,
-    discount: 0,
-    inStock: false,
-  });
-  const filtersKey = JSON.stringify(filters);
-  const invalidPriceRange = filters.priceRange[0] > filters.priceRange[1];
+  const [status, setStatus] = useState("idle");
+  const [retryKey, setRetryKey] = useState(0);
+  const lockedCategoryIds = useMemo(() => Array.isArray(baseFilters.category) ? baseFilters.category.map(String) : [], [baseFilters.category]);
+  const effectiveCategories = lockedCategoryIds.length ? lockedCategoryIds : filters.category;
+  const invalidPrice = filters.minPrice && filters.maxPrice && filters.minPrice > filters.maxPrice;
 
-  const requestPayload = useMemo(
-    () => ({
-      ...stableBaseFilters,
-      search: baseSearch || undefined,
-      category: filters.category,
-      brand: filters.brand,
-      minPrice: filters.priceRange[0],
-      maxPrice: filters.priceRange[1],
-      rating: filters.rating || undefined,
-      discount: filters.discount || undefined,
-      inStock: filters.inStock || undefined,
-      pagination: { page, limit: ITEMS_PER_PAGE },
-      sort,
-    }),
-    [
-      stableBaseFilters,
-      baseSearch,
-      filters.category,
-      filters.brand,
-      filters.priceRange,
-      filters.rating,
-      filters.discount,
-      filters.inStock,
-      page,
-      sort,
-    ]
-  );
+  const apply = (updates, options) => setSearchParams((current) => updateDiscoveryParams(current, updates, options), { replace: false });
+  const request = useMemo(() => ({
+    ...baseFilters,
+    category: effectiveCategories,
+    brand: filters.brand,
+    color: filters.color,
+    size: filters.size,
+    minPrice: filters.minPrice || undefined,
+    maxPrice: filters.maxPrice || undefined,
+    rating: filters.rating || undefined,
+    discount: filters.discount || undefined,
+    inStock: filters.inStock || undefined,
+    trending: filters.trending || undefined,
+    bestseller: filters.bestseller || undefined,
+    sort: filters.sort,
+    pagination: { page: filters.page, limit: ITEMS_PER_PAGE },
+  }), [baseFilters, effectiveCategories, filters]);
 
   useEffect(() => {
-    setFilters((prev) => {
-      const sameCategory =
-        prev.category.length === normalizedBaseCategory.length &&
-        prev.category.every((item) => normalizedBaseCategory.includes(item));
-
-      if (sameCategory) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        category: normalizedBaseCategory,
-      };
-    });
-
-    setPage(1);
-  }, [baseCategoryKey, normalizedBaseCategory]);
-
-  useEffect(() => {
-    let isActive = true;
-
-    if (invalidPriceRange) {
-      setProducts([]);
-      setTotalResults(0);
-      setProductFetchStatus("fulfilled");
-      return () => {
-        isActive = false;
-      };
+    let active = true;
+    if (invalidPrice) {
+      setProducts([]); setTotalResults(0); setStatus("invalid");
+      return () => { active = false; };
     }
+    setStatus("pending");
+    fetchProducts(request)
+      .then((response) => { if (active) { setProducts(Array.isArray(response.data) ? response.data : []); setTotalResults(Number(response.totalResults || 0)); setStatus("fulfilled"); } })
+      .catch(() => { if (active) { setProducts([]); setTotalResults(0); setStatus("rejected"); } });
+    return () => { active = false; };
+  }, [invalidPrice, request, retryKey]);
 
-    setProductFetchStatus("pending");
-
-    fetchProducts(requestPayload)
-      .then((response) => {
-        if (!isActive) return;
-
-        setProducts(Array.isArray(response.data) ? response.data : []);
-        setTotalResults(Number(response.totalResults || 0));
-        setProductFetchStatus("fulfilled");
-      })
-      .catch(() => {
-        if (!isActive) return;
-
-        setProducts([]);
-        setProductFetchStatus("rejected");
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [invalidPriceRange, requestPayload]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filtersKey, sort, baseSearch, baseCategoryKey]);
-
+  const colors = useMemo(() => [...new Set(products.flatMap((product) => product.colors || []))].sort(), [products]);
+  const sizes = useMemo(() => [...new Set(products.flatMap((product) => product.sizes || []))].sort(), [products]);
   const totalPages = Math.max(1, Math.ceil(totalResults / ITEMS_PER_PAGE));
 
-  const availableBrands = useMemo(() => {
-    if (!products.length) {
-      return [];
-    }
+  const chips = useMemo(() => {
+    const result = [];
+    if (!lockedCategoryIds.length) filters.category.forEach((id) => result.push({ key: "category", value: id, label: categories.find((item) => String(item._id) === id)?.name || "Category" }));
+    filters.brand.forEach((id) => result.push({ key: "brand", value: id, label: allBrands.find((item) => String(item._id) === id)?.name || "Brand" }));
+    filters.color.forEach((value) => result.push({ key: "color", value, label: value }));
+    filters.size.forEach((value) => result.push({ key: "size", value, label: `Size ${value}` }));
+    if (filters.minPrice) result.push({ key: "minPrice", label: `From ${formatNumber(filters.minPrice)}` });
+    if (filters.maxPrice) result.push({ key: "maxPrice", label: `Up to ${formatNumber(filters.maxPrice)}` });
+    if (filters.rating) result.push({ key: "rating", label: `${filters.rating}+ stars` });
+    if (filters.discount) result.push({ key: "discount", label: `${filters.discount}%+ off` });
+    if (filters.inStock) result.push({ key: "inStock", label: "In stock" });
+    if (filters.trending) result.push({ key: "trending", label: "Trending" });
+    if (filters.bestseller) result.push({ key: "bestseller", label: "Best sellers" });
+    return result;
+  }, [allBrands, categories, filters, lockedCategoryIds.length]);
 
-    const uniqueBrands = new Map();
-
-    products.forEach((product) => {
-      const brand = product?.brand;
-      if (!brand) return;
-
-      if (typeof brand === "object") {
-        const key = String(brand._id || brand.name || "");
-        if (key) uniqueBrands.set(key, brand);
-        return;
-      }
-
-      const key = String(brand);
-      if (key) uniqueBrands.set(key, { _id: brand, name: key });
-    });
-
-    if (brands.length) {
-      return Array.from(uniqueBrands.keys())
-        .map((key) => brands.find((item) => String(item._id) === key || item.name === key) || uniqueBrands.get(key))
-        .filter(Boolean);
-    }
-
-    return Array.from(uniqueBrands.values());
-  }, [brands, products]);
-
-  const activeChips = useMemo(() => {
-    const chips = [];
-    const categoryFiltersLocked =
-      normalizedBaseCategory.length &&
-      filters.category.length === normalizedBaseCategory.length &&
-      filters.category.every((item) => normalizedBaseCategory.includes(item));
-
-    if (!categoryFiltersLocked) {
-      filters.category.forEach((categoryId) => {
-        const category = categories.find((item) => item._id === categoryId);
-        if (category) chips.push({ key: `category-${categoryId}`, label: category.name });
-      });
-    }
-
-    filters.brand.forEach((brandId) => {
-      const brand = brands.find((item) => item._id === brandId);
-      if (brand) chips.push({ key: `brand-${brandId}`, label: brand.name });
-    });
-
-    if (filters.rating) chips.push({ key: "rating", label: `${filters.rating}+ stars` });
-    if (filters.discount) chips.push({ key: "discount", label: `${filters.discount}% off` });
-    if (filters.inStock) chips.push({ key: "stock", label: "In stock" });
-
-    return chips;
-  }, [brands, categories, filters, normalizedBaseCategory]);
-
-  const pageButtons = useMemo(() => {
-    const start = Math.max(1, page - 2);
-    const end = Math.min(totalPages, start + 4);
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-  }, [page, totalPages]);
-
-  const resetFilters = () =>
-    setFilters({
-      category: normalizedBaseCategory,
-      brand: [],
-      priceRange: [0, 250000],
-      rating: 0,
-      discount: 0,
-      inStock: false,
-    });
+  const removeChip = (chip) => {
+    if (["category", "brand", "color", "size"].includes(chip.key)) apply({ [chip.key]: filters[chip.key].filter((value) => value !== chip.value) });
+    else apply({ [chip.key]: "" });
+  };
+  const clearFilters = () => apply({ category: [], brand: [], color: [], size: [], minPrice: "", maxPrice: "", rating: "", discount: "", inStock: false, trending: false, bestseller: false });
 
   return (
-    <PageWrapper className="py-6 md:py-8">
-      <Section className="pt-2">
-        <div className="flex flex-col gap-5 rounded-[36px] border border-border bg-white px-6 py-6 shadow-card lg:flex-row lg:items-end lg:justify-between lg:px-8">
-          <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-textSecondary">Catalog</p>
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-textPrimary sm:text-4xl">{title}</h1>
-            <p className="body-copy max-w-2xl">{description}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-textPrimary">
-              {totalResults} products
-            </span>
-            <Button variant="secondary" icon={<FiFilter />} className="xl:hidden" onClick={() => setMobileFiltersOpen(true)}>
-              Filters
-            </Button>
-          </div>
+    <div className="mx-auto w-full max-w-[1440px] px-4 pb-20 pt-7 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
+        {breadcrumbs.map((item, index) => <React.Fragment key={`${item.label}-${index}`}>{index ? <FiChevronRight aria-hidden="true" /> : null}{item.to ? <Link to={item.to} className="hover:text-primary">{item.label}</Link> : <span aria-current="page" className="text-primary">{item.label}</span>}</React.Fragment>)}
+      </nav>
+      <header className="rounded-[34px] border border-default bg-surface p-6 shadow-md sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl"><p className="text-label text-brand-primary">Product discovery</p><h1 className="mt-3 text-page-title text-primary">{title}</h1>{description ? <p className="mt-4 body-copy">{description}</p> : null}</div>
+          <div className="flex flex-wrap items-center gap-3"><span className="rounded-pill border border-default bg-surface-muted px-4 py-2 text-sm font-semibold text-primary" aria-live="polite">{status === "pending" ? "Updatingâ€¦" : `${totalResults} results`}</span><Button variant="secondary" icon={<FiFilter />} className="xl:hidden" onClick={() => setMobileFiltersOpen(true)}>Filters{chips.length ? ` (${chips.length})` : ""}</Button></div>
         </div>
+        {headerContent ? <div className="mt-7 border-t border-default pt-7">{headerContent}</div> : null}
+      </header>
 
-        {headerContent ? <div className="mt-5 border-t border-border pt-5">{headerContent}</div> : null}
-      </Section>
-
-      <Section className="pt-4">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
-          <div className="hidden w-full max-w-[300px] xl:block">
-            <div className="sticky top-28 rounded-[30px] border border-border bg-white p-6 shadow-card">
-              <FilterPanel
-                filters={filters}
-                setFilters={setFilters}
-                categories={categories}
-                availableBrands={availableBrands}
-                lockedCategoryIds={normalizedBaseCategory}
-              />
+      <div className="mt-7 grid gap-7 xl:grid-cols-[292px_minmax(0,1fr)]">
+        <aside className="hidden xl:block"><div className="sticky top-28 rounded-[28px] border border-default bg-surface p-5 shadow-sm"><FilterPanel filters={filters} apply={apply} categories={categories} brands={allBrands} colors={colors} sizes={sizes} lockedCategoryIds={lockedCategoryIds} /></div></aside>
+        <section className="min-w-0" aria-label="Product results">
+          <div className="mb-6 rounded-[26px] border border-default bg-surface p-4 shadow-xs">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                {chips.length ? chips.map((chip) => <button key={`${chip.key}-${chip.value || chip.label}`} type="button" onClick={() => removeChip(chip)} className="inline-flex items-center gap-2 rounded-pill border border-default bg-surface-muted px-3 py-2 text-sm text-primary hover:border-strong">{chip.label}<FiX aria-hidden="true" /></button>) : <span className="py-2 text-sm text-text-secondary">No filters applied</span>}
+                {chips.length ? <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-text-secondary hover:text-primary"><FiRotateCcw />Clear all</button> : null}
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="sr-only" htmlFor="discovery-sort">Sort products</label>
+                <select id="discovery-sort" value={filters.sort} onChange={(event) => apply({ sort: event.target.value })} className="input-base min-w-48 py-2.5">{sortOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+                <div className="inline-flex rounded-pill border border-default bg-surface-muted p-1" aria-label="Product view">
+                  <IconButton label="Grid view" size="sm" aria-pressed={filters.view === "grid"} onClick={() => apply({ view: "grid" }, { resetPage: false })} className={filters.view === "grid" ? "bg-surface-raised text-brand-primary shadow-xs" : ""}><FiGrid /></IconButton>
+                  <IconButton label="List view" size="sm" aria-pressed={filters.view === "list"} onClick={() => apply({ view: "list" }, { resetPage: false })} className={filters.view === "list" ? "bg-surface-raised text-brand-primary shadow-xs" : ""}><FiList /></IconButton>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-6">
-            <div className="flex flex-col gap-4 rounded-[30px] border border-border bg-white px-5 py-5 shadow-card lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap gap-2">
-                {activeChips.length ? (
-                  <>
-                    {activeChips.map((chip) => (
-                      <span key={chip.key} className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-textPrimary">
-                        {chip.label}
-                      </span>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={resetFilters}
-                      className="rounded-full px-4 py-2 text-sm font-medium text-textSecondary transition hover:bg-surface hover:text-textPrimary"
-                    >
-                      Clear all
-                    </button>
-                  </>
-                ) : (
-                  <span className="text-sm text-textSecondary">Use filters to narrow the catalog.</span>
-                )}
-              </div>
+          {status === "pending" ? <ProductGridSkeleton count={8} /> : status === "rejected" ? (
+            <div className="rounded-[30px] border border-error/30 bg-surface p-10 text-center" role="alert"><h2 className="text-2xl font-semibold text-primary">Products could not be loaded</h2><p className="mt-3 text-text-secondary">Check the connection and try again.</p><Button className="mt-6" onClick={() => setRetryKey((value) => value + 1)}>Try again</Button></div>
+          ) : status === "invalid" ? (
+            <div className="rounded-[30px] border border-warning/30 bg-surface p-10 text-center" role="alert"><h2 className="text-2xl font-semibold text-primary">Price range needs attention</h2><p className="mt-3 text-text-secondary">Minimum price cannot be higher than maximum price.</p><Button className="mt-6" variant="secondary" onClick={() => apply({ minPrice: "", maxPrice: "" })}>Clear price range</Button></div>
+          ) : products.length ? (
+            <>
+              <div className={filters.view === "list" ? "grid gap-5" : "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"}>{products.map((product) => <ProductCard key={product._id} product={product} variant={filters.view} />)}</div>
+              {totalPages > 1 ? <nav aria-label="Product pages" className="mt-9 flex flex-wrap items-center justify-center gap-2"><Button variant="secondary" disabled={filters.page <= 1} onClick={() => apply({ page: filters.page - 1 }, { resetPage: false })}>Previous</Button><span className="px-3 text-sm text-text-secondary">Page {filters.page} of {totalPages}</span><Button variant="secondary" disabled={filters.page >= totalPages} onClick={() => apply({ page: filters.page + 1 }, { resetPage: false })}>Next</Button></nav> : null}
+            </>
+          ) : (
+            <div className="rounded-[30px] border border-default bg-surface p-10 text-center"><h2 className="text-2xl font-semibold text-primary">No products found</h2><p className="mt-3 text-text-secondary">Try removing a filter or checking the search spelling.</p>{chips.length ? <Button className="mt-6" onClick={clearFilters}>Clear filters</Button> : null}</div>
+          )}
+        </section>
+      </div>
 
-              <div className="w-full sm:w-[240px]">
-                <Input as="select" value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Sort products">
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Input>
-              </div>
-            </div>
-
-            {productFetchStatus === "pending" ? (
-              <LoadingState />
-            ) : products.length ? (
-              <>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                  {products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                  <Button
-                    variant="secondary"
-                    disabled={page === 1}
-                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  >
-                    Previous
-                  </Button>
-                  {pageButtons.map((pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      type="button"
-                      onClick={() => setPage(pageNumber)}
-                      className={[
-                        "inline-flex h-11 w-11 items-center justify-center rounded-full border text-sm font-semibold transition",
-                        pageNumber === page
-                          ? "border-primary bg-primary text-white"
-                          : "border-border bg-white text-textPrimary hover:border-primary/15",
-                      ].join(" ")}
-                    >
-                      {pageNumber}
-                    </button>
-                  ))}
-                  <Button
-                    variant="secondary"
-                    disabled={page === totalPages}
-                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <EmptyState
-                title="No products matched these filters"
-                description="Try clearing a few filters or widening your price range to see more results."
-                actionLabel="Browse all products"
-                actionTo="/products"
-              />
-            )}
-          </div>
-        </div>
-      </Section>
-
-      <AnimatePresence>
-        {mobileFiltersOpen ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] bg-black/20 backdrop-blur-sm xl:hidden"
-          >
-            <motion.div
-              initial={{ x: 24, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 24, opacity: 0 }}
-              className="ml-auto h-full w-full max-w-sm border-l border-border bg-background p-5 shadow-premium"
-            >
-              <div className="mb-5 flex items-center justify-between">
-                <p className="text-lg font-semibold text-textPrimary">Filters</p>
-                <button
-                  type="button"
-                  onClick={() => setMobileFiltersOpen(false)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white text-textPrimary"
-                >
-                  <FiX />
-                </button>
-              </div>
-
-              <div className="rounded-[28px] border border-border bg-white p-5 shadow-card">
-                <FilterPanel
-                  filters={filters}
-                  setFilters={setFilters}
-                  categories={categories}
-                  availableBrands={availableBrands}
-                  lockedCategoryIds={normalizedBaseCategory}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </PageWrapper>
+      <Drawer open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title="Product filters" className="max-w-md"><div className="h-full overflow-y-auto bg-surface p-5"><FilterPanel filters={filters} apply={apply} categories={categories} brands={allBrands} colors={colors} sizes={sizes} lockedCategoryIds={lockedCategoryIds} onClose={() => setMobileFiltersOpen(false)} /></div></Drawer>
+    </div>
   );
 };
+
+const formatNumber = (value) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(value);

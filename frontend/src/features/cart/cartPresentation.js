@@ -1,0 +1,15 @@
+export const adaptCartItem = (item) => ({
+  id: item?._id,
+  product: item?.product || {},
+  productId: item?.product?._id,
+  slug: item?.product?.slug || item?.product?._id,
+  name: item?.product?.name || item?.product?.title || "Product",
+  image: item?.product?.thumbnail || item?.product?.images?.[0] || "",
+  brand: item?.product?.brand?.name || item?.product?.brandName || "",
+  price: Number(item?.product?.price || 0),
+  originalPrice: Number(item?.product?.originalPrice || item?.product?.price || 0),
+  quantity: Math.max(1, Number(item?.quantity || 1)),
+  size: item?.size || "",
+  color: item?.color || "",
+  stock: Number(item?.product?.stock ?? item?.product?.stockQuantity ?? Infinity),
+});

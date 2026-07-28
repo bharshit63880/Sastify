@@ -1,43 +1,43 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { Container } from "../../components/ui/Container";
-import { Button } from "../../components/ui/Button";
+import { selectCategories } from "../categories/CategoriesSlice";
+import { buildCategoryTree, getCategoryHref } from "../../utils/categoryTree";
 
-const footerLinks = [
-  { label: "Shop", to: "/products" },
-  { label: "Categories", to: "/products" },
-  { label: "Cart", to: "/cart" },
-  { label: "Profile", to: "/account" },
+const groups = [
+  { title: "Shop", links: [{ label: "All products", to: "/products" }, { label: "Search", to: "/search" }, { label: "Cart", to: "/cart" }] },
+  { title: "Account", links: [{ label: "Your account", to: "/account" }, { label: "Orders", to: "/orders" }, { label: "Wishlist", to: "/wishlist" }] },
+  { title: "Access", links: [{ label: "Sign in", to: "/login" }, { label: "Create account", to: "/signup" }] },
 ];
 
 export const Footer = () => {
+  const categories = useSelector(selectCategories);
+  const roots = buildCategoryTree(categories).roots.slice(0, 5);
+  const allGroups = roots.length ? [...groups.slice(0, 1), { title: "Categories", links: roots.map((item) => ({ label: item.name, to: getCategoryHref(item) })) }, ...groups.slice(1)] : groups;
   return (
-    <footer className="mt-16 border-t border-border/80">
-      <Container className="py-10">
-        <div className="flex flex-col gap-8 rounded-[32px] border border-border bg-white px-6 py-8 shadow-card lg:flex-row lg:items-end lg:justify-between lg:px-8">
-          <div className="max-w-xl space-y-3">
-            <Link to="/" className="text-2xl font-semibold tracking-[-0.04em] text-textPrimary">
-              Sastify
-            </Link>
-            <p className="body-copy max-w-lg">
-              Minimal commerce for people who want a faster path from discovery to checkout.
-            </p>
+    <footer className="mt-16 border-t border-default bg-page-secondary/70">
+      <Container className="py-10 lg:py-14">
+        <div className="grid gap-10 lg:grid-cols-[1.25fr_2fr]">
+          <div className="max-w-md">
+            <Link to="/" className="text-3xl font-bold tracking-[-0.055em] text-primary">Sastify</Link>
+            <p className="mt-4 text-body">A faster, clearer way to discover products across fashion, technology, home, and everyday essentials.</p>
+            <p className="mt-5 text-small">Payments and delivery options are shown accurately during checkout.</p>
           </div>
-
-          <div className="flex flex-col gap-6 lg:items-end">
-            <div className="flex flex-wrap gap-5 text-sm text-textSecondary">
-              {footerLinks.map((item) => (
-                <Link key={item.label} to={item.to} className="transition hover:text-textPrimary">
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <span className="text-sm text-textSecondary">Ready to browse the catalog?</span>
-              <Button to="/products">Start shopping</Button>
-            </div>
-            <p className="text-sm text-textSecondary">© 2026 Sastify. All rights reserved.</p>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            {allGroups.map((group) => (
+              <section key={group.title}>
+                <h2 className="text-label text-muted">{group.title}</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {group.links.map((item) => <li key={`${group.title}-${item.to}-${item.label}`}><Link to={item.to} className="text-sm text-text-secondary transition-colors hover:text-primary">{item.label}</Link></li>)}
+                </ul>
+              </section>
+            ))}
           </div>
+        </div>
+        <div className="mt-10 flex flex-col gap-2 border-t border-default pt-6 text-small sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Sastify. All rights reserved.</p>
+          <p>Built for accessible, responsive shopping.</p>
         </div>
       </Container>
     </footer>
