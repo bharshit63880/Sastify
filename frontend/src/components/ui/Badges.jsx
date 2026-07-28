@@ -9,7 +9,7 @@ const tones = {
   success: "bg-success/14 text-success",
   warning: "bg-warning/15 text-warning",
   error: "bg-error/14 text-error",
-  neutral: "bg-surface-muted text-secondary",
+  neutral: "bg-surface-muted text-text-secondary",
 };
 
 export const Badge = ({ variant = "neutral", className = "", children, ...props }) => (

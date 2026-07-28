@@ -77,14 +77,15 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-sticky px-3 pt-3">
+      <header className="fixed inset-x-0 top-0 z-sticky border-b border-transparent bg-page/70 px-2 py-2 backdrop-blur-md supports-[backdrop-filter]:bg-page/60 sm:px-3">
         <Container className="relative">
-          <motion.div layout className={`relative flex items-center gap-2 rounded-2xl border px-3 transition-[padding,background-color,border-color,box-shadow] duration-normal sm:px-4 ${scrolled || location.pathname !== "/" ? "border-glass bg-glass py-2 shadow-glass backdrop-blur-2xl" : "border-transparent bg-page/70 py-3 backdrop-blur-lg"}`}>
+          <motion.div layout className={`relative flex items-center gap-2 overflow-visible rounded-2xl border px-2.5 transition-[padding,background-color,border-color,box-shadow,transform] duration-normal sm:px-4 ${scrolled || location.pathname !== "/" ? "border-glass bg-glass py-2 shadow-glass backdrop-blur-2xl" : "border-default/70 bg-surface/90 py-2.5 shadow-sm backdrop-blur-xl"}`}>
+            <span className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-brand-primary/70 to-transparent" aria-hidden="true" />
             <IconButton label="Open navigation menu" className="lg:hidden" onClick={() => openGlobal("mobile-menu")}><FiMenu /></IconButton>
             <NavbarLogo />
             <div className="ml-4"><DesktopNavigation categoriesOpen={categoriesOpen} onCategoriesToggle={() => { setAccountOpen(false); closeOverlay(); setCategoriesOpen((value) => !value); }} /></div>
             <div className="ml-auto flex items-center gap-1.5">
-              <button type="button" onClick={() => openGlobal("search")} className="hidden min-w-52 items-center gap-3 rounded-pill border border-default bg-surface-raised px-4 py-2.5 text-left text-sm text-secondary shadow-xs md:flex" aria-label="Open search">
+              <button type="button" onClick={() => openGlobal("search")} className="hidden min-w-48 items-center gap-3 rounded-pill border border-default bg-surface-raised px-4 py-2.5 text-left text-sm text-text-secondary shadow-xs transition hover:border-strong hover:text-text-primary xl:flex" aria-label="Open search">
                 <FiSearch /><span className="flex-1">Search Sastify</span><kbd className="rounded-md border border-default px-1.5 py-0.5 text-[10px]">Ctrl K</kbd>
               </button>
               <ThemeToggle compact className="hidden xl:inline-flex" />
@@ -103,6 +104,7 @@ export const Navbar = () => {
           </motion.div>
         </Container>
       </header>
+      <div className="h-[82px] sm:h-[84px]" aria-hidden="true" />
       <MobileMenu roots={roots} user={user} onLogout={logout} />
     </>
   );

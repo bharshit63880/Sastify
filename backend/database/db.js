@@ -24,7 +24,7 @@ exports.connectToDB=async()=>{
         await connectionPromise;
         return mongoose.connection;
     } catch (error) {
-        console.log(error);
+        console.error(`[database] Connection failed: ${error.name || "DatabaseError"}`);
         throw error;
     }
 }

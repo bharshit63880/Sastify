@@ -1,136 +1,93 @@
-# 🛒 Sastify
+# Sastify
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![React](https://img.shields.io/badge/Frontend-React-blue?logo=react)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js-green?logo=node.js)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB-darkgreen?logo=mongodb)](https://www.mongodb.com/)
+Sastify is a MERN marketplace with a responsive storefront, product discovery, cart and checkout, customer accounts, order tracking, and a role-protected administration workspace.
 
-**Sastify** is a modern, responsive, full-stack e-commerce application designed to provide a seamless shopping experience. It features a robust React frontend and a scalable Node.js/Express backend powered by MongoDB. 
+## Architecture
 
-🚀 **Live Demo:** [Sastify on Vercel](https://sastify-frontend.vercel.app/)
+- `frontend/`: Create React App, React Router, Redux Toolkit, Tailwind, Framer Motion, and selective MUI compatibility.
+- `backend/`: Express, Mongoose, JWT authentication, address/cart/order services, coupons, banners, and configurable payment gateways.
+- Deployment: the existing frontend and backend Vercel projects remain separate. No framework or deployment migration is required.
 
----
+## Local setup
 
-## ✨ Features
+1. Install dependencies in `frontend` and `backend` with `npm install`.
+2. Copy each `.env.example` to `.env` in the same folder.
+3. Replace placeholder values locally. Never commit `.env`.
+4. Start MongoDB or provide a reachable Atlas URI.
+5. Run `npm run dev` in `backend`.
+6. Run `npm start` in `frontend`.
 
-* **User Authentication:** Secure signup, login, and password reset functionalities using JWT.
-* **Product Management:** Browse products through a comprehensive catalog with categories.
-* **Shopping Experience:** Add items to a shopping cart and maintain a personalized wishlist.
-* **Secure Checkout:** Seamless order placement with multiple payment modes (COD, UPI, CARD).
-* **User Dashboard:** Efficient address management and order tracking.
-* **Engagement:** Leave reviews and ratings on purchased products.
-* **Admin Controls:** Special admin privileges (via `isAdmin` flag) for managing the platform.
+The backend waits for its initial database connection before opening the local HTTP listener. Vercel requests connect through the shared connection helper.
 
----
+## Environment
 
-## 🛠️ Tech Stack
+Frontend:
 
-**Frontend**
-* **React:** UI Library
-* **Material-UI (MUI):** Component library for responsive design
-* **Framer Motion:** Smooth animations and page transitions
-* **Lottie:** Lightweight, scalable animations
+- `REACT_APP_BASE_URL`: deployed backend origin, without a trailing slash.
+- `REACT_APP_STRIPE_PUBLISHABLE_KEY`: optional legacy Stripe form key when that form is enabled.
 
-**Backend & Database**
-* **Node.js & Express:** RESTful API server
-* **MongoDB & Mongoose:** NoSQL Database and object data modeling
+Backend:
 
-**Utilities**
-* **JWT:** Secure, token-based authentication
-* **Nodemailer:** Email integration (e.g., password resets)
-* **Dotenv:** Environment variable management
+- `MONGO_URI`, `JWT_SECRET`, `ORIGIN`, `PRODUCTION`, `NODE_ENV`
+- `COOKIE_EXPIRATION_DAYS`, `OTP_EXPIRATION_TIME`
+- `LOGIN_TOKEN_EXPIRATION`, `PASSWORD_RESET_TOKEN_EXPIRATION`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- `PAYMENT_PROVIDER`
+- Provider-specific PayU or Razorpay keys
+- `MOCK_PAYMENT_SECRET` for explicit local/test payment mode only
+- `ALLOW_VERCEL_PREVIEWS`: opt-in; keep false unless arbitrary preview origins are intentionally trusted
 
----
+`ORIGIN` accepts a comma-separated allowlist. Credentials-enabled CORS is never wildcarded.
 
-## 📂 Project Structure
+## Validation
 
-```text
-Sastify/
-├── backend/
-│   ├── controllers/      # Route logic and business operations
-│   ├── database/         # Database connection setup
-│   ├── middleware/       # Express middlewares (auth, error handling)
-│   ├── models/           # Mongoose schemas
-│   ├── routes/           # API route definitions
-│   ├── seed/             # Initial database seeding scripts
-│   ├── utils/            # Helper functions
-│   ├── .env              # Backend environment variables
-│   ├── index.js          # Backend entry point
-│   ├── package.json
-│   └── vercel.json       # Deployment configuration
-├── frontend/
-│   ├── public/           # Static assets
-│   ├── src/              # React components, pages, and context
-│   ├── .env              # Frontend environment variables
-│   └── package.json
-└── .gitignore
-🚀 Getting Started
-Follow these instructions to get a copy of the project up and running on your local machine.
+Frontend:
 
-Prerequisites
-Ensure you have the following installed:
-
-Node.js (v16+ recommended)
-
-npm or yarn
-
-MongoDB (Local instance or MongoDB Atlas cluster)
-
-1. Backend Setup
-Navigate to the backend directory:
-
-Bash
-    cd backend
-    ```
-2.  Install dependencies:
 ```bash
-    npm install
-    ```
-3.  Create a `.env` file in the root of the `backend` directory and add your required environment variables (e.g., `PORT`, `MONGO_URI`, `JWT_SECRET`, email credentials).
-4.  *(Optional)* Seed the database with initial data:
+npm test -- --watchAll=false
+npm run build
+```
+
+Backend:
+
 ```bash
-    npm run seed
-    ```
-5.  Start the backend server:
-```bash
-    npm run dev
-    ```
+node --check index.js
+```
 
-### 2. Frontend Setup
+The backend package currently has no automated integration-test runner. Security-sensitive routes should also be exercised against a disposable test database.
 
-1.  Open a new terminal window and navigate to the frontend directory:
-```bash
-    cd frontend
-    ```
-2.  Install dependencies:
-```bash
-    npm install
-    ```
-3.  Create a `.env` file in the root of the `frontend` directory and add your necessary environment variables (e.g., `REACT_APP_API_URL` pointing to your backend).
-4.  Start the frontend development server:
-```bash
-    npm start
-    ```
+## Security notes
 
----
+- Customer and admin routes verify JWTs from the HTTP-only cookie or bearer token.
+- Blocked users are rejected during token resolution.
+- All product, category, brand, coupon, banner, user-management, and order-management mutations require admin authorization.
+- Address and customer-order operations are ownership-scoped.
+- Gateway order IDs are unique and successful payment verification returns the existing order on a replay.
+- A database transaction is still recommended for payment verification, stock decrement, coupon usage, cart clearing, and order creation as one atomic operation.
+- In-memory rate limiting was intentionally not added because it is unreliable across Vercel serverless instances. Use an edge or durable rate-limit service for production auth endpoints.
 
-## 📜 Scripts Overview
+## Production smoke checklist
 
-### Backend Scripts
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Starts the backend server in development mode using Nodemon. |
-| `npm run seed` | Populates the database with default sample data. |
+1. Open the backend root endpoint and confirm a `200` health response.
+2. Open the frontend and confirm storefront APIs use `REACT_APP_BASE_URL`.
+3. Verify the production frontend origin is present in backend `ORIGIN`.
+4. Confirm unknown origins do not receive credentialed CORS access.
+5. Sign up, request OTP, verify the account, sign out, and sign in again.
+6. Confirm an expired session returns `401` and the intended frontend route is preserved.
+7. Add a product as a guest, sign in, and verify guest-cart synchronization.
+8. Create, edit, set default, and delete an address owned by the test customer.
+9. Apply a valid and invalid coupon and verify totals come from checkout preview.
+10. Run COD order creation once and confirm cart, stock, coupon usage, and order history.
+11. In gateway test mode, verify success, failure, retry, and duplicate-callback behavior.
+12. Confirm a non-admin receives `403` for every admin mutation, including banners.
+13. Confirm an admin can manage products, orders, users, categories, brands, coupons, and banners.
+14. Verify dark/light themes and widths from 320 through 1440 pixels.
+15. Inspect browser and Vercel logs for CORS, cookie, database, payment, and unhandled errors.
 
-### Frontend Scripts
-| Command | Description |
-| :--- | :--- |
-| `npm start` | Starts the React development server on `localhost:3000`. |
+## Known limitations
 
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.
-
-> **Note:** Ensure you never commit your `.env` files to version control. They are inclu
+- Live flows require a reachable MongoDB deployment and valid SMTP/payment configuration.
+- Product variant inventory is global; color-size combination availability is not modeled.
+- Review records do not currently prove verified purchases.
+- Full order creation is not yet wrapped in a MongoDB transaction.
+- Production Lighthouse results depend on backend availability and network latency.

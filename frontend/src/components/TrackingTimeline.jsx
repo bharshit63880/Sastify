@@ -7,7 +7,7 @@ export const TrackingTimeline = ({ items = [] }) => {
       {items.map((item, index) => (
         <div key={`${item.status}-${index}`} className="flex gap-4">
           <div className="flex flex-col items-center">
-            <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+            <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-text-primary">
               <FiCheckCircle />
             </div>
             {index < items.length - 1 ? <div className="mt-2 h-full min-h-14 w-px bg-white/10" /> : null}

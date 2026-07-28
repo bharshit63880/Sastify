@@ -77,7 +77,7 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
           </div>
         </Link>
         <div className="absolute left-3 top-3 flex flex-col gap-2">
-          <span className={`rounded-pill px-3 py-1.5 text-xs font-semibold backdrop-blur-xl ${stock > 0 ? "bg-surface-glass text-primary" : "bg-error text-white"}`}>{stock > 0 ? (stock <= 5 ? `Only ${stock} left` : "In stock") : "Out of stock"}</span>
+          <span className={`rounded-pill px-3 py-1.5 text-xs font-semibold backdrop-blur-xl ${stock > 0 ? "bg-surface-glass text-text-primary" : "bg-error text-white"}`}>{stock > 0 ? (stock <= 5 ? `Only ${stock} left` : "In stock") : "Out of stock"}</span>
           {discount > 0 ? <span className="w-fit rounded-pill bg-success px-3 py-1.5 text-xs font-bold text-white">{discount}% off</span> : null}
         </div>
         <div className="absolute right-3 top-3 flex flex-col gap-2">
@@ -91,14 +91,14 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
 
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
         {brand ? <p className="text-label line-clamp-1 text-text-secondary">{brand}</p> : null}
-        <Link to={`/products/${product.slug || product._id}`} className="line-clamp-2 text-[1.02rem] font-semibold leading-6 text-primary hover:text-brand-primary">{label}</Link>
+        <Link to={`/products/${product.slug || product._id}`} className="line-clamp-2 text-[1.02rem] font-semibold leading-6 text-text-primary hover:text-brand-primary">{label}</Link>
         <div className="flex flex-wrap items-center gap-2 text-sm text-text-secondary">
-          <span className="inline-flex items-center gap-1 font-semibold text-primary"><FiStar className="fill-current text-warning" />{rating.toFixed(1)}</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-text-primary"><FiStar className="fill-current text-warning" />{rating.toFixed(1)}</span>
           <span aria-label={`${reviews} reviews`}>({reviews})</span>
         </div>
         {product.colors?.length ? <div className="flex items-center gap-1.5" aria-label={`Available colors: ${product.colors.join(", ")}`}>{product.colors.slice(0, 5).map((color) => <span key={color} title={color} className="h-4 w-4 rounded-full border border-strong shadow-xs" style={{ backgroundColor: colorMap[String(color).toLowerCase()] || color }} />)}{product.colors.length > 5 ? <span className="text-xs text-text-secondary">+{product.colors.length - 5}</span> : null}</div> : null}
         <div className="mt-auto flex flex-wrap items-end gap-x-3 gap-y-1">
-          <strong className="text-2xl tracking-[-.035em] text-primary">{formatPrice(price)}</strong>
+          <strong className="text-2xl tracking-[-.035em] text-text-primary">{formatPrice(price)}</strong>
           {originalPrice > price ? <span className="pb-0.5 text-sm text-text-secondary line-through">{formatPrice(originalPrice)}</span> : null}
         </div>
         <div className={`grid gap-2 ${isList ? "sm:grid-cols-2" : ""}`}>

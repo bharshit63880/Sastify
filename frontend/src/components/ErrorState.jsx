@@ -23,7 +23,7 @@ export const ErrorState = ({
       {icon || <FiAlertTriangle className={compact ? "text-xl" : "text-2xl"} aria-hidden="true" />}
     </div>
     <div className="space-y-2">
-      <h2 className={cn("font-semibold text-primary", compact ? "text-xl" : "text-2xl")}>{title}</h2>
+      <h2 className={cn("font-semibold text-text-primary", compact ? "text-xl" : "text-2xl")}>{title}</h2>
       <p className="mx-auto max-w-lg text-body">{description}</p>
     </div>
     <div className="flex flex-wrap justify-center gap-3">

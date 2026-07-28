@@ -1,203 +1,44 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getAllOrdersAsync, resetOrderUpdateStatus, selectOrderUpdateStatus, selectOrders, updateOrderByIdAsync } from '../../order/OrderSlice'
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { Avatar, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { useForm } from "react-hook-form"
-import { toast } from 'react-toastify';
-import {noOrdersAnimation} from '../../../assets/index'
-import Lottie from 'lottie-react'
+import React, { useEffect, useMemo, useState } from "react";
+import { FiSearch } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "../../../components/ui/Button";
+import { EmptyState } from "../../../components/EmptyState";
+import { LoadingState } from "../../../components/LoadingState";
+import { formatPrice } from "../../../utils/currencyFormatter";
+import { getAllOrdersAsync, selectOrderFetchStatus, selectOrderUpdateStatus, selectOrders, selectOrdersErrors, updateOrderByIdAsync } from "../../order/OrderSlice";
 
+const statuses = ["pending", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled", "returned"];
 
 export const AdminOrders = () => {
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+  const fetchStatus = useSelector(selectOrderFetchStatus);
+  const updateStatus = useSelector(selectOrderUpdateStatus);
+  const error = useSelector(selectOrdersErrors);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [editing, setEditing] = useState(null);
+  const [nextStatus, setNextStatus] = useState("");
+  useEffect(() => { dispatch(getAllOrdersAsync()); }, [dispatch]);
+  const visible = useMemo(() => orders.filter((order) => {
+    const text = [order.orderNumber, order.addressSnapshot?.fullName, order.addressSnapshot?.phoneNumber, ...(order.items || []).map((item) => item.name)].filter(Boolean).join(" ").toLowerCase();
+    return (filter === "all" || order.orderStatus === filter) && text.includes(query.trim().toLowerCase());
+  }), [filter, orders, query]);
+  const save = async (order) => {
+    if (!nextStatus || nextStatus === order.orderStatus) { setEditing(null); return; }
+    if (!window.confirm(`Change order ${order.orderNumber} status to ${nextStatus.replaceAll("_", " ")}?`)) return;
+    await dispatch(updateOrderByIdAsync({ _id: order._id, orderStatus: nextStatus })).unwrap();
+    setEditing(null);
+  };
 
-  const dispatch=useDispatch()
-  const orders=useSelector(selectOrders)
-  const [editIndex,setEditIndex]=useState(-1)
-  const orderUpdateStatus=useSelector(selectOrderUpdateStatus)
-  const theme=useTheme()
-  const is1620=useMediaQuery(theme.breakpoints.down(1620))
-  const is1200=useMediaQuery(theme.breakpoints.down(1200))
-  const is480=useMediaQuery(theme.breakpoints.down(480))
-
-  const {register,handleSubmit} = useForm()
-
-  useEffect(()=>{
-    dispatch(getAllOrdersAsync())
-  },[dispatch])
-
-
-  useEffect(()=>{
-    if(orderUpdateStatus==='fulfilled'){
-      toast.success("Status udpated")
-    }
-    else if(orderUpdateStatus==='rejected'){
-      toast.error("Error updating order status")
-    }
-  },[orderUpdateStatus])
-
-  useEffect(()=>{
-    return ()=>{
-      dispatch(resetOrderUpdateStatus())
-    }
-  },[dispatch])
-
-
-  const handleUpdateOrder=(data)=>{
-    const update={...data,_id:orders[editIndex]._id}
-    setEditIndex(-1)
-    dispatch(updateOrderByIdAsync(update))
-  }
-
-
-  const editOptions=['Pending','Dispatched','Out for delivery','Delivered','Cancelled']
-
-  const getStatusColor=(status)=>{
-    if(status==='Pending'){
-      return {bgcolor:'#dfc9f7',color:'#7c59a4'}
-    }
-    else if(status==='Dispatched'){
-      return {bgcolor:'#feed80',color:'#927b1e'}
-    }
-    else if(status==='Out for delivery'){
-      return {bgcolor:'#AACCFF',color:'#4793AA'}
-    }
-    else if(status==='Delivered'){
-      return {bgcolor:"#b3f5ca",color:"#548c6a"}
-    }
-    else if(status==='Cancelled'){
-      return {bgcolor:"#fac0c0",color:'#cc6d72'}
-    }
-  }
-
-
+  if (fetchStatus === "pending") return <LoadingState cards={4} />;
+  if (fetchStatus === "rejected") return <EmptyState title="Orders unavailable" description={error?.message || "Admin orders could not be loaded."} actionLabel="Return to dashboard" actionTo="/admin" />;
   return (
-
-    <Stack justifyContent={'center'} alignItems={'center'}>
-
-      <Stack mt={5} mb={3} component={'form'} noValidate onSubmit={handleSubmit(handleUpdateOrder)}>
-
-        {
-          orders.length?
-          <TableContainer sx={{width:is1620?"95vw":"auto",overflowX:'auto'}} component={Paper} elevation={2}>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Order</TableCell>
-                  <TableCell align="left">Id</TableCell>
-                  <TableCell align="left">Item</TableCell>
-                  <TableCell align="right">Total Amount</TableCell>
-                  <TableCell align="right">Shipping Address</TableCell>
-                  <TableCell align="right">Payment Method</TableCell>
-                  <TableCell align="right">Order Date</TableCell>
-                  <TableCell align="right">Status</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-
-                {
-                orders.length && orders.map((order,index) => (
-
-                  <TableRow key={order._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-
-                    <TableCell component="th" scope="row">{index}</TableCell>
-                    <TableCell align="right">{order._id}</TableCell>
-                    <TableCell align="right">
-                      {
-                        order.item.map((product)=>(
-                          <Stack mt={2} flexDirection={'row'} alignItems={'center'} columnGap={2}>
-                            <Avatar src={product.product.thumbnail}></Avatar>
-                            <Typography>{product.product.title}</Typography>
-                          </Stack>
-                        ))
-                      }
-                    </TableCell>
-                    <TableCell align="right">{order.total}</TableCell>
-                    <TableCell align="right">
-                      <Stack>
-                        <Typography>{order.address[0].street}</Typography>
-                        <Typography>{order.address[0].city}</Typography>
-                        <Typography>{order.address[0].state}</Typography>
-                        <Typography>{order.address[0].postalCode}</Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="right">{order.paymentMode}</TableCell>
-                    <TableCell align="right">{new Date(order.createdAt).toDateString()}</TableCell>
-
-                    {/* order status */}
-                    <TableCell align="right">
-
-                        {
-                          editIndex===index?(
-
-                        <FormControl fullWidth>
-                          <InputLabel id="demo-simple-select-label">Update status</InputLabel>
-                          <Select
-                            defaultValue={order.status}
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            label="Update status"
-                            {...register('status',{required:'Status is required'})}
-                            >
-                            
-                            {
-                              editOptions.map((option)=>(
-                                <MenuItem value={option}>{option}</MenuItem>
-                              ))
-                            }
-                          </Select>
-                        </FormControl>
-                        ):<Chip label={order.status} sx={getStatusColor(order.status)}/>
-                        }
-                      
-                    </TableCell>
-
-                    {/* actions */}
-                    <TableCell align="right">
-
-                      {
-                        editIndex===index?(
-                          <Button>
-
-                            <IconButton type='submit'><CheckCircleOutlinedIcon/></IconButton>
-                          </Button>
-                        )
-                        :
-                        <IconButton onClick={()=>setEditIndex(index)}><EditOutlinedIcon/></IconButton>
-                      }
-
-                    </TableCell>
-
-                  </TableRow>
-                ))}
-
-              </TableBody>
-            </Table>
-          </TableContainer>
-          :
-          <Stack width={is480?"auto":'30rem'} justifyContent={'center'}>
-
-            <Stack rowGap={'1rem'}>
-                <Lottie animationData={noOrdersAnimation}/>
-                <Typography textAlign={'center'} alignSelf={'center'} variant='h6' fontWeight={400}>There are no orders currently</Typography>
-            </Stack>
-              
-
-          </Stack>  
-        }
-    
-    </Stack>
-    
-    </Stack>
-  )
-}
+    <section>
+      <div className="mb-6"><h1 className="text-3xl font-semibold text-text-primary">Order management</h1><p className="mt-2 text-text-secondary">Search real orders and apply supported delivery-state transitions.</p></div>
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-default bg-surface p-4 sm:flex-row"><label className="relative flex-1"><span className="sr-only">Search orders</span><FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Order, customer, phone, or product" className="w-full rounded-pill border border-default bg-surface-raised py-3 pl-11 pr-4 text-sm text-text-primary" /></label><select aria-label="Filter order status" value={filter} onChange={(event) => setFilter(event.target.value)} className="rounded-pill border border-default bg-surface-raised px-4 py-3 text-sm capitalize text-text-primary"><option value="all">All statuses</option>{statuses.map((item) => <option value={item} key={item}>{item.replaceAll("_", " ")}</option>)}</select></div>
+      <div className="overflow-x-auto rounded-2xl border border-default bg-surface"><table className="min-w-[980px] w-full text-left text-sm"><thead className="border-b border-default bg-surface-muted text-text-secondary"><tr><th className="p-4">Order</th><th className="p-4">Customer</th><th className="p-4">Items</th><th className="p-4">Payment</th><th className="p-4">Total</th><th className="p-4">Delivery status</th><th className="p-4">Action</th></tr></thead><tbody className="divide-y divide-default">{visible.map((order) => <tr key={order._id}><td className="p-4"><p className="font-semibold text-text-primary">{order.orderNumber}</p><p className="mt-1 text-xs text-text-secondary">{new Date(order.createdAt).toLocaleString()}</p></td><td className="p-4"><p className="text-text-primary">{order.addressSnapshot?.fullName || "Unavailable"}</p><p className="mt-1 text-xs text-text-secondary">{order.addressSnapshot?.phoneNumber}</p></td><td className="p-4 text-text-secondary">{order.items?.length || 0} item{order.items?.length === 1 ? "" : "s"}</td><td className="p-4"><span className="rounded-pill bg-surface-muted px-3 py-1 capitalize text-text-primary">{order.paymentStatus?.replaceAll("_", " ")}</span></td><td className="p-4 font-semibold text-text-primary">{formatPrice(order.pricing?.total)}</td><td className="p-4">{editing === order._id ? <select aria-label={`New status for ${order.orderNumber}`} value={nextStatus} onChange={(event) => setNextStatus(event.target.value)} className="rounded-lg border border-default bg-surface-raised p-2 text-text-primary">{statuses.map((item) => <option value={item} key={item}>{item.replaceAll("_", " ")}</option>)}</select> : <span className="capitalize text-text-primary">{order.orderStatus?.replaceAll("_", " ")}</span>}</td><td className="p-4">{editing === order._id ? <div className="flex gap-2"><Button disabled={updateStatus === "pending"} onClick={() => save(order)}>Confirm</Button><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button></div> : <Button variant="secondary" onClick={() => { setEditing(order._id); setNextStatus(order.orderStatus); }}>Update</Button>}</td></tr>)}</tbody></table></div>
+      {!visible.length ? <p className="py-10 text-center text-text-secondary">No orders match the current filters.</p> : null}
+    </section>
+  );
+};

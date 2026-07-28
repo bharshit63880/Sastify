@@ -11,7 +11,7 @@ export const MobileNavigation = () => {
   const { activeOverlay, openOverlay } = useAppShell();
   if (["/checkout", "/login", "/signup", "/verify-otp", "/forgot-password"].some((path) => location.pathname.startsWith(path))) return null;
   const count = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  const actionClass = "relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-medium text-secondary aria-[current=page]:text-brand-primary";
+  const actionClass = "relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-medium text-text-secondary aria-[current=page]:text-brand-primary";
   return (
     <nav aria-label="Mobile navigation" className="fixed inset-x-3 bottom-3 z-sticky flex rounded-2xl border border-glass bg-glass px-2 pb-[max(.3rem,env(safe-area-inset-bottom))] pt-1 shadow-glass backdrop-blur-2xl lg:hidden">
       <NavLink to="/" className={actionClass}><FiHome className="text-lg" />Home</NavLink>

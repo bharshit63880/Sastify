@@ -20,7 +20,7 @@ export const Footer = () => {
       <Container className="py-10 lg:py-14">
         <div className="grid gap-10 lg:grid-cols-[1.25fr_2fr]">
           <div className="max-w-md">
-            <Link to="/" className="text-3xl font-bold tracking-[-0.055em] text-primary">Sastify</Link>
+            <Link to="/" className="text-3xl font-bold tracking-[-0.055em] text-text-primary">Sastify</Link>
             <p className="mt-4 text-body">A faster, clearer way to discover products across fashion, technology, home, and everyday essentials.</p>
             <p className="mt-5 text-small">Payments and delivery options are shown accurately during checkout.</p>
           </div>
@@ -29,7 +29,7 @@ export const Footer = () => {
               <section key={group.title}>
                 <h2 className="text-label text-muted">{group.title}</h2>
                 <ul className="mt-4 space-y-2.5">
-                  {group.links.map((item) => <li key={`${group.title}-${item.to}-${item.label}`}><Link to={item.to} className="text-sm text-text-secondary transition-colors hover:text-primary">{item.label}</Link></li>)}
+                  {group.links.map((item) => <li key={`${group.title}-${item.to}-${item.label}`}><Link to={item.to} className="text-sm text-text-secondary transition-colors hover:text-text-primary">{item.label}</Link></li>)}
                 </ul>
               </section>
             ))}

@@ -5,11 +5,11 @@ import { cn } from "../../utils/cn";
 
 const variants = {
   primary: "border border-brand-primary bg-brand-primary text-white shadow-sm hover:brightness-105",
-  secondary: "border border-default bg-surface-raised text-primary shadow-xs hover:border-strong hover:bg-surface-muted",
-  outline: "border border-strong bg-transparent text-primary hover:border-brand-primary hover:text-brand-primary",
-  ghost: "border border-transparent bg-transparent text-secondary hover:bg-surface-muted hover:text-primary",
+  secondary: "border border-default bg-surface-raised text-text-primary shadow-xs hover:border-strong hover:bg-surface-muted",
+  outline: "border border-strong bg-transparent text-text-primary hover:border-brand-primary hover:text-brand-primary",
+  ghost: "border border-transparent bg-transparent text-text-secondary hover:bg-surface-muted hover:text-text-primary",
   danger: "border border-error bg-error text-white shadow-xs hover:brightness-105",
-  glass: "border border-glass bg-glass text-primary shadow-glass backdrop-blur-xl hover:border-strong",
+  glass: "border border-glass bg-glass text-text-primary shadow-glass backdrop-blur-xl hover:border-strong",
   gradient: "border border-transparent bg-brand-gradient text-white shadow-glow hover:brightness-105",
 };
 

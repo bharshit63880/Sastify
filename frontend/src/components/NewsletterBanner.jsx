@@ -6,7 +6,7 @@ export const NewsletterBanner = ({
   description = "Get product launches, limited offers, and curated picks in one clean weekly email.",
 }) => {
   return (
-    <div className="overflow-hidden rounded-[32px] border border-border bg-white px-6 py-6 shadow-card md:px-8 md:py-8">
+    <div className="overflow-hidden rounded-[32px] border border-border bg-surface px-6 py-6 shadow-card md:px-8 md:py-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-xl space-y-2">
           <p className="max-w-md text-2xl font-semibold tracking-tight text-textPrimary">{title}</p>

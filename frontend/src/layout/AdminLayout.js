@@ -1,12 +1,15 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FiBox, FiGrid, FiLogOut, FiMenu, FiPackage, FiUsers, FiX } from "react-icons/fi";
+import { FiBox, FiGrid, FiLogOut, FiMenu, FiPackage, FiSearch, FiUsers, FiX } from "react-icons/fi";
 import { useDispatch } from "react-redux";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
 import { logoutAsync } from "../features/auth/AuthSlice";
+import { ThemeToggle } from "../theme/ThemeToggle";
+import { fetchAllBrandsAsync } from "../features/brands/BrandSlice";
+import { fetchAllCategoriesAsync } from "../features/categories/CategoriesSlice";
 
 const navItems = [
   { label: "Dashboard", to: "/admin", icon: <FiGrid /> },
@@ -20,6 +23,7 @@ export const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(() => (typeof window !== "undefined" ? window.innerWidth >= 1024 : true));
 
   React.useEffect(() => {
@@ -27,12 +31,21 @@ export const AdminLayout = () => {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+  React.useEffect(() => {
+    dispatch(fetchAllCategoriesAsync());
+    dispatch(fetchAllBrandsAsync());
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (isDesktop) {
       setOpen(false);
     }
   }, [isDesktop]);
+  React.useEffect(() => {
+    let robots = document.head.querySelector('meta[name="robots"]');
+    if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
+    robots.content = "noindex,nofollow";
+  }, []);
 
   const handleLogout = async () => {
     setOpen(false);
@@ -41,14 +54,13 @@ export const AdminLayout = () => {
   };
 
   const navContent = (
-    <div className="flex h-full flex-col gap-7 border-r border-[#20263a] bg-[#171b2b] px-5 py-6 lg:w-[248px]">
+    <div className={`flex h-full flex-col gap-7 border-r border-[#20263a] bg-[#171b2b] px-5 py-6 transition-[width] ${collapsed ? "lg:w-[92px]" : "lg:w-[248px]"}`}>
       <div className="space-y-3">
         <span className="inline-flex w-fit rounded-full border border-white/8 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#b8c1d9]">
           Admin Console
         </span>
         <div>
-          <h1 className="text-2xl font-semibold text-textPrimary">Sastify Admin</h1>
-          <p className="mt-2 text-sm leading-6 text-[#98a3bf]">Catalog, orders, users, and promotions in one place.</p>
+          {!collapsed ? <><h1 className="text-2xl font-semibold text-white">Sastify Admin</h1><p className="mt-2 text-sm leading-6 text-[#98a3bf]">Catalog, orders, users, and promotions in one place.</p></> : null}
         </div>
       </div>
 
@@ -63,22 +75,22 @@ export const AdminLayout = () => {
               className={[
                 "flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
                 active
-                  ? "bg-white text-[#171b2b] shadow-[0_12px_24px_rgba(0,0,0,0.14)]"
+                  ? "bg-surface text-[#171b2b] shadow-[0_12px_24px_rgba(0,0,0,0.14)]"
                   : "text-[#a7b1ca] hover:bg-white/6 hover:text-white",
               ].join(" ")}
             >
               <span className="text-base">{item.icon}</span>
-              <span>{item.label}</span>
+              {!collapsed ? <span>{item.label}</span> : <span className="sr-only">{item.label}</span>}
             </Link>
           );
         })}
       </div>
 
       <div className="mt-auto space-y-4">
-        <div className="rounded-[24px] border border-white/8 bg-white/5 p-4">
+        {!collapsed ? <div className="rounded-[24px] border border-white/8 bg-white/5 p-4">
           <p className="text-sm font-semibold text-textPrimary">Operations snapshot</p>
           <p className="mt-2 text-sm leading-6 text-[#98a3bf]">Monitor inventory, shipping state changes, and customer access from a single workspace.</p>
-        </div>
+        </div> : null}
         <Button variant="secondary" fullWidth icon={<FiLogOut />} onClick={handleLogout}>
           Logout
         </Button>
@@ -136,6 +148,7 @@ export const AdminLayout = () => {
             </Container>
           </div>
 
+          <div className="sticky top-0 z-30 hidden border-b border-default bg-surface-glass backdrop-blur-xl lg:block"><Container className="flex items-center justify-between gap-4 py-3"><div className="flex items-center gap-3"><button type="button" aria-label={collapsed ? "Expand admin sidebar" : "Collapse admin sidebar"} onClick={() => setCollapsed((value) => !value)} className="grid h-10 w-10 place-items-center rounded-xl border border-default text-text-primary"><FiMenu /></button><div><p className="text-xs text-text-secondary">Admin / {location.pathname.split("/").filter(Boolean).slice(1).join(" / ") || "Dashboard"}</p><p className="font-semibold text-text-primary">Management workspace</p></div></div><div className="flex items-center gap-3"><div className="relative"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" /><input aria-label="Search admin navigation" placeholder="Search workspace" className="rounded-pill border border-default bg-surface-raised py-2 pl-9 pr-3 text-sm text-text-primary" /></div><ThemeToggle compact /></div></Container></div>
           <Container className="py-6 lg:py-8">
             {!isDesktop ? (
               <div className="mb-6 flex justify-end lg:hidden">

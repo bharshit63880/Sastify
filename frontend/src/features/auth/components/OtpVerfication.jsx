@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AuthShell } from "../../../components/ui/AuthShell";
 import { Button } from "../../../components/ui/Button";
-import { Input } from "../../../components/ui/Input";
+import { OtpInput } from "./OtpInput";
 import {
   clearOtpVerificationError,
   clearResendOtpError,
@@ -24,11 +23,9 @@ import {
 } from "../AuthSlice";
 
 export const OtpVerfication = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [seconds, setSeconds] = useState(0);
   const dispatch = useDispatch();
   const loggedInUser = useSelector(selectLoggedInUser);
   const navigate = useNavigate();
@@ -37,6 +34,11 @@ export const OtpVerfication = () => {
   const resendOtpSuccessMessage = useSelector(selectResendOtpSuccessMessage);
   const otpVerificationStatus = useSelector(selectOtpVerificationStatus);
   const otpVerificationError = useSelector(selectOtpVerificationError);
+  useEffect(() => {
+    if (seconds <= 0) return undefined;
+    const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [seconds]);
 
   const shouldShowOtpForm = useMemo(
     () =>
@@ -102,14 +104,18 @@ export const OtpVerfication = () => {
     }
 
     dispatch(resendOtpAsync({ user: loggedInUser._id }));
+    setSeconds(30);
   };
 
-  const handleVerifyOtp = (data) => {
+  const handleVerifyOtp = (event) => {
+    event.preventDefault();
     if (!loggedInUser?._id) {
       return;
     }
 
-    dispatch(verifyOtpAsync({ ...data, userId: loggedInUser._id }));
+    if (!/^\d{4}$/.test(otp)) { setOtpError("Enter the complete 4-digit code"); return; }
+    setOtpError("");
+    dispatch(verifyOtpAsync({ otp, userId: loggedInUser._id }));
   };
 
   const handleLogout = async () => {
@@ -122,6 +128,7 @@ export const OtpVerfication = () => {
       eyebrow="Email verification required"
       title="Verify your email"
       description="Enter the one-time password sent to your inbox to activate your account."
+      highlights={["Paste the complete code at once", "Keyboard-friendly digit navigation", "Accessible resend countdown"]}
     >
       <div className="space-y-6">
         <div className="rounded-[24px] border border-border bg-surface p-4">
@@ -130,28 +137,13 @@ export const OtpVerfication = () => {
         </div>
 
         {shouldShowOtpForm ? (
-          <form onSubmit={handleSubmit(handleVerifyOtp)} className="space-y-4">
-            <Input
-              label="4-digit OTP"
-              inputMode="numeric"
-              error={errors.otp?.message}
-              {...register("otp", {
-                required: "OTP is required",
-                minLength: {
-                  value: 4,
-                  message: "Please enter a 4 digit OTP",
-                },
-                maxLength: {
-                  value: 4,
-                  message: "Please enter a 4 digit OTP",
-                },
-              })}
-            />
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <OtpInput value={otp} onChange={(value) => { setOtp(value); setOtpError(""); }} error={otpError} disabled={otpVerificationStatus === "pending"} />
             <Button type="submit" fullWidth disabled={otpVerificationStatus === "pending"}>
               {otpVerificationStatus === "pending" ? "Verifying..." : "Verify email"}
             </Button>
-            <Button type="button" variant="secondary" fullWidth onClick={handleSendOtp} disabled={resendOtpStatus === "pending"}>
-              {resendOtpStatus === "pending" ? "Sending..." : "Resend OTP"}
+            <Button type="button" variant="secondary" fullWidth onClick={handleSendOtp} disabled={resendOtpStatus === "pending" || seconds > 0}>
+              {resendOtpStatus === "pending" ? "Sending..." : seconds > 0 ? `Resend in ${seconds}s` : "Resend OTP"}
             </Button>
           </form>
         ) : (
@@ -162,10 +154,11 @@ export const OtpVerfication = () => {
 
         <div className="space-y-2">
           <p className="text-sm text-textSecondary">Need a different account?</p>
-          <button type="button" onClick={handleLogout} className="text-sm font-semibold text-primary">
+          <button type="button" onClick={handleLogout} className="text-sm font-semibold text-text-primary">
             Sign out and use another email
           </button>
         </div>
+        <span className="sr-only" role="status" aria-live="polite">{seconds > 0 ? `You can resend the code in ${seconds} seconds` : ""}</span>
       </div>
     </AuthShell>
   );

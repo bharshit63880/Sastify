@@ -15,7 +15,16 @@ exports.getDashboardOverview = async (req, res) => {
 
         const salesAggregate = await Order.aggregate([
             { $match: { paymentStatus: { $in: ["paid", "cod_pending"] } } },
-            { $group: { _id: null, totalSales: { $sum: "$pricing.total" } } },
+            { $group: { _id: null, totalSales: { $sum: "$pricing.total" }, averageOrderValue: { $avg: "$pricing.total" } } },
+        ]);
+        const [orderStatusBreakdown, topProducts] = await Promise.all([
+            Order.aggregate([{ $group: { _id: "$orderStatus", count: { $sum: 1 } } }, { $sort: { count: -1 } }]),
+            Order.aggregate([
+                { $unwind: "$items" },
+                { $group: { _id: "$items.product", name: { $first: "$items.name" }, units: { $sum: "$items.quantity" }, revenue: { $sum: "$items.totalPrice" } } },
+                { $sort: { units: -1 } },
+                { $limit: 8 },
+            ]),
         ]);
 
         const activeCoupons = await Coupon.countDocuments({ active: true });
@@ -25,9 +34,12 @@ exports.getDashboardOverview = async (req, res) => {
             totalOrders,
             totalProducts,
             totalSales: salesAggregate[0]?.totalSales || 0,
+            averageOrderValue: salesAggregate[0]?.averageOrderValue || 0,
             activeCoupons,
             lowStockProducts,
             recentOrders,
+            orderStatusBreakdown,
+            topProducts,
         });
     } catch (error) {
         console.log(error);

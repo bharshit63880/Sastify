@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { AuthShell } from "../../../components/ui/AuthShell";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
+import { PasswordField } from "./PasswordField";
 import {
   clearSignupError,
   resetSignupStatus,
@@ -25,7 +26,7 @@ export const Signup = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({ mode: "onChange" });
 
   useEffect(() => {
     if (loggedInUser && !loggedInUser?.isVerified) {
@@ -53,7 +54,9 @@ export const Signup = () => {
   }, [dispatch, status]);
 
   const onSubmit = (data) => {
-    dispatch(signupAsync(data));
+    if (status === "pending") return;
+    const payload = { name: data.name, email: data.email, password: data.password };
+    dispatch(signupAsync(payload));
   };
 
   return (
@@ -61,11 +64,12 @@ export const Signup = () => {
       eyebrow="Create account"
       title="Create your account"
       description="Set up your account for faster checkout, saved orders, and a simpler return path."
+      highlights={["Saved addresses and faster checkout", "Order history and delivery tracking", "Wishlist synced to your account"]}
     >
       <div className="space-y-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Full name" error={errors.name?.message} {...register("name", { required: "Name is required" })} />
-          <Input
+          <PasswordField showStrength
             label="Email"
             type="email"
             error={errors.email?.message}
@@ -77,6 +81,7 @@ export const Signup = () => {
               },
             })}
           />
+          <PasswordField label="Confirm password" error={errors.confirmPassword?.message} {...register("confirmPassword", { required: "Confirm your password", validate: (value, values) => value === values.password || "Passwords do not match" })} />
           <Input
             label="Password"
             type="password"

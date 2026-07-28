@@ -89,7 +89,7 @@ export const ForgotPassword = () => {
           </form>
         ) : null}
 
-        <Link to="/login" className="text-sm font-semibold text-primary">
+        <Link to="/login" className="text-sm font-semibold text-text-primary">
           Go back to login
         </Link>
       </div>

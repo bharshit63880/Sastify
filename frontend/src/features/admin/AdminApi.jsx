@@ -54,3 +54,23 @@ export const getCoupons = async () => {
   const res = await axiosi.get("/coupons?admin=true");
   return res.data;
 };
+
+export const getBanners = async () => {
+  const res = await axiosi.get("/banners");
+  return res.data;
+};
+
+export const createBanner = async (payload) => {
+  const res = await axiosi.post("/banners", payload);
+  return res.data;
+};
+
+export const updateBanner = async (id, payload) => {
+  const res = await axiosi.patch(`/banners/${id}`, payload);
+  return res.data;
+};
+
+export const deleteBanner = async (id) => {
+  const res = await axiosi.delete(`/banners/${id}`);
+  return res.data;
+};

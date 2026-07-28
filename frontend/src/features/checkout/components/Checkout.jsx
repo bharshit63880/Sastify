@@ -35,7 +35,7 @@ const loadRazorpayScript = () =>
     document.body.appendChild(script);
   });
 
-const sectionClassName = "rounded-[30px] border border-border bg-white p-5 shadow-card sm:p-6";
+const sectionClassName = "rounded-[30px] border border-border bg-surface p-5 shadow-card sm:p-6";
 
 export const Checkout = () => {
   const dispatch = useDispatch();
@@ -61,6 +61,7 @@ export const Checkout = () => {
     label: "",
   });
   const [paymentError, setPaymentError] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -179,13 +180,13 @@ export const Checkout = () => {
     setShowAddressForm(false);
   };
 
-  const placeCODOrder = () => {
+  const placeCODOrder = async () => {
     if (!selectedAddressId) {
       setPaymentError("Please select a delivery address");
       return;
     }
 
-    dispatch(createOrderAsync({ addressId: selectedAddressId, couponCode }));
+    await dispatch(createOrderAsync({ addressId: selectedAddressId, couponCode })).unwrap();
   };
 
   const placeOnlineOrder = async () => {
@@ -193,6 +194,7 @@ export const Checkout = () => {
       setPaymentError("Please select a delivery address");
       return;
     }
+    if (isProcessing) return;
 
     if (!paymentConfig.enabled) {
       setPaymentError("Online payment is not configured on this server yet. Please use Cash on Delivery for now.");
@@ -264,6 +266,9 @@ export const Checkout = () => {
         });
         dispatch(fetchCartByUserIdAsync());
         navigate(`/order-success/${verification.order._id}`);
+      },
+      modal: {
+        ondismiss: () => setIsProcessing(false),
       },
       prefill: {
         name: loggedInUser?.name,
@@ -341,7 +346,7 @@ export const Checkout = () => {
                       "flex cursor-pointer items-start gap-3 rounded-[24px] border px-4 py-4 transition",
                       selectedAddressId === address._id
                         ? "border-primary bg-surface"
-                        : "border-border bg-white hover:border-primary/15",
+                        : "border-border bg-surface hover:border-primary/15",
                     ].join(" ")}
                   >
                     <input
@@ -431,7 +436,7 @@ export const Checkout = () => {
                   "rounded-[24px] border px-5 py-5 text-left transition",
                   paymentMethod === "cod"
                     ? "border-primary bg-surface"
-                    : "border-border bg-white hover:border-primary/15",
+                    : "border-border bg-surface hover:border-primary/15",
                 ].join(" ")}
               >
                 <p className="text-base font-semibold text-textPrimary">Cash on Delivery</p>
@@ -445,7 +450,7 @@ export const Checkout = () => {
                   "rounded-[24px] border px-5 py-5 text-left transition",
                   paymentMethod === "online"
                     ? "border-primary bg-surface"
-                    : "border-border bg-white hover:border-primary/15",
+                    : "border-border bg-surface hover:border-primary/15",
                 ].join(" ")}
               >
                 <div className="flex items-center gap-2">
@@ -475,7 +480,7 @@ export const Checkout = () => {
                         "rounded-full border px-4 py-2 text-sm font-medium transition",
                         onlineMode === mode.id
                           ? "border-primary bg-primary text-white"
-                          : "border-border bg-white text-textPrimary hover:border-primary/15 hover:bg-surface",
+                          : "border-border bg-surface text-textPrimary hover:border-primary/15 hover:bg-surface",
                       ].join(" ")}
                     >
                       {mode.title}
@@ -502,7 +507,7 @@ export const Checkout = () => {
             <div className="space-y-3">
               {cartItems.map((item) => (
                 <div key={item._id} className="flex items-start gap-3 rounded-[22px] border border-border bg-surface p-3">
-                  <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[18px] border border-border bg-white p-2">
+                  <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[18px] border border-border bg-surface p-2">
                     <ProductVisual
                       product={item.product}
                       alt={item.product.name || item.product.title}
@@ -587,31 +592,38 @@ export const Checkout = () => {
             </div>
 
             {paymentError ? (
-              <p className="rounded-2xl border border-[#e9b4b4] bg-[#fff1f1] px-4 py-3 text-sm text-[#9b4242]">
+              <p role="alert" tabIndex="-1" className="rounded-2xl border border-[#e9b4b4] bg-[#fff1f1] px-4 py-3 text-sm text-[#9b4242]">
                 {paymentError}
               </p>
             ) : null}
 
             <Button
               fullWidth
-              onClick={() => {
+              disabled={isProcessing || !selectedAddressId}
+              aria-busy={isProcessing}
+              onClick={async () => {
+                if (isProcessing) return;
                 setPaymentError("");
-                if (paymentMethod === "online") {
-                  placeOnlineOrder().catch((error) => {
+                setIsProcessing(true);
+                try {
+                  if (paymentMethod === "online") {
+                    await placeOnlineOrder();
+                  } else {
+                    await placeCODOrder();
+                  }
+                } catch (error) {
                     if (error?.status === 401) {
                       setPaymentError("Your session expired. Please sign in again to continue with online payment.");
                       navigate("/login", { state: { from: "/checkout" } });
                       return;
                     }
-
-                    setPaymentError(error?.message || "Payment could not be initiated");
-                  });
-                } else {
-                  placeCODOrder();
+                    setPaymentError(error?.message || (paymentMethod === "online" ? "Payment could not be initiated" : "Order could not be placed"));
+                } finally {
+                  if (paymentMethod === "cod" || (paymentConfig.provider !== "payu" && paymentConfig.provider !== "razorpay")) setIsProcessing(false);
                 }
               }}
             >
-              {paymentMethod === "online"
+              {isProcessing ? "Processing securely…" : paymentMethod === "online"
                 ? paymentConfig.testMode
                   ? "Test online payment"
                   : "Pay securely"
@@ -620,6 +632,15 @@ export const Checkout = () => {
           </div>
         </aside>
       </div>
+      {isProcessing ? (
+        <div className="fixed inset-0 z-modal grid place-items-center bg-black/50 p-6 backdrop-blur-sm" role="status" aria-live="assertive" aria-label="Processing your order">
+          <div className="w-full max-w-sm rounded-2xl border border-default bg-surface p-7 text-center shadow-lg">
+            <span className="mx-auto block h-10 w-10 animate-spin rounded-full border-2 border-brand-primary/20 border-t-brand-primary motion-reduce:animate-none" />
+            <h2 className="mt-5 text-xl font-semibold text-text-primary">Processing securely</h2>
+            <p className="mt-2 text-sm leading-6 text-text-secondary">Please keep this page open. We will never submit your order twice.</p>
+          </div>
+        </div>
+      ) : null}
     </PageWrapper>
   );
 };

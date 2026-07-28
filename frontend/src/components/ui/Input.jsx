@@ -32,7 +32,7 @@ export const Input = React.forwardRef(
     return (
       <div className={cn("flex w-full flex-col gap-2", wrapperClassName)}>
         {label ? (
-          <label htmlFor={inputId} className="text-label text-secondary">
+          <label htmlFor={inputId} className="text-label text-text-secondary">
             {label}
             {required ? <span className="ml-1 text-error" aria-hidden="true">*</span> : null}
           </label>

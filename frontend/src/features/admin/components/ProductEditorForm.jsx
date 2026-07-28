@@ -84,7 +84,7 @@ export const ProductEditorForm = ({ product, categories, brands, mode = "create"
     <PageWrapper className="py-0">
       <Card hover={false}>
         <div className="mb-8 space-y-3">
-          <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-text-primary">
             {mode === "edit" ? "Edit product" : "Create product"}
           </span>
           <h1 className="text-3xl font-semibold tracking-tight text-textPrimary">

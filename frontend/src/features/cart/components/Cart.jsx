@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { EmptyState } from "../../../components/EmptyState";
 import { Button } from "../../../components/ui/Button";
+import { CartItemSkeleton, SkeletonRegion } from "../../../components/ui/Skeleton";
 import { formatPrice } from "../../../utils/currencyFormatter";
 import { DEFAULT_SHIPPING_CHARGE, DEFAULT_TAX_RATE, FREE_SHIPPING_THRESHOLD } from "../../../constants";
 import { selectLoggedInUser } from "../../auth/AuthSlice";
@@ -12,7 +13,9 @@ import {
   deleteCartItemByIdAsync,
   removeGuestCartItem,
   resetCartByUserIdAsync,
+  selectCartErrors,
   selectCartItems,
+  selectCartStatus,
   selectIsGuestCart,
   updateCartItemByIdAsync,
   updateGuestCartItem,
@@ -24,6 +27,9 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
   const items = useSelector(selectCartItems);
   const isGuestCart = useSelector(selectIsGuestCart);
   const loggedInUser = useSelector(selectLoggedInUser);
+  const status = useSelector(selectCartStatus);
+  const cartError = useSelector(selectCartErrors);
+  const isPending = status === "pending";
 
   const pricing = useMemo(() => {
     const subtotal = items.reduce((total, item) => total + item.product.price * item.quantity, 0);
@@ -39,7 +45,8 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
   }, [items]);
 
   const handleQuantity = (item, nextQuantity) => {
-    if (nextQuantity < 1) return;
+    const stock = Number(item.product.stock ?? item.product.stockQuantity ?? Infinity);
+    if (nextQuantity < 1 || nextQuantity > stock || isPending) return;
 
     if (isGuestCart && !loggedInUser) {
       dispatch(updateGuestCartItem({ id: item._id, quantity: nextQuantity }));
@@ -48,6 +55,14 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
 
     dispatch(updateCartItemByIdAsync({ _id: item._id, quantity: nextQuantity }));
   };
+
+  if (isPending && !items.length) {
+    return <SkeletonRegion label="Loading cart"><div className="grid gap-4 xl:grid-cols-[1fr_360px]"><div className="space-y-4">{[1, 2, 3].map((key) => <CartItemSkeleton key={key} />)}</div><div className="skeleton h-96 rounded-2xl" /></div></SkeletonRegion>;
+  }
+
+  if (cartError && !items.length) {
+    return <EmptyState title="We couldn't load your cart" description={cartError.message || "Please refresh and try again."} actionLabel="Continue shopping" actionTo="/products" />;
+  }
 
   const handleRemove = (itemId) => {
     if (isGuestCart && !loggedInUser) {
@@ -71,7 +86,7 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
 
   return (
     <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-      <div className="flex-1 space-y-4 rounded-[32px] border border-border bg-white p-4 shadow-card md:p-6">
+      <div className="flex-1 space-y-4 rounded-[32px] border border-border bg-surface p-4 shadow-card md:p-6">
         {items.map((item) => (
           <div
             key={item._id}
@@ -79,7 +94,7 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
           >
             <Link
               to={`/products/${item.product.slug || item.product._id}`}
-              className="overflow-hidden rounded-[22px] border border-border bg-white"
+              className="overflow-hidden rounded-[22px] border border-border bg-surface"
             >
               <div className="h-28 w-full">
                 <ProductVisual
@@ -123,17 +138,19 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
               <button
                 type="button"
                 onClick={() => handleRemove(item._id)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white text-[#c74d6f] transition hover:-translate-y-0.5"
+                disabled={isPending}
+                aria-label={`Remove ${item.product.name || item.product.title}`}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-[#c74d6f] transition hover:-translate-y-0.5"
               >
                 <FiTrash2 />
               </button>
 
-              <div className="inline-flex items-center gap-5 rounded-full border border-border bg-white px-5 py-3">
-                <button type="button" onClick={() => handleQuantity(item, item.quantity - 1)} className="text-textPrimary">
+              <div className="inline-flex items-center gap-5 rounded-full border border-border bg-surface px-5 py-3">
+                <button type="button" aria-label={`Decrease ${item.product.name || item.product.title} quantity`} disabled={isPending} onClick={() => handleQuantity(item, item.quantity - 1)} className="text-textPrimary disabled:opacity-40">
                   <FiMinus />
                 </button>
                 <span className="min-w-[16px] text-center text-sm font-semibold text-textPrimary">{item.quantity}</span>
-                <button type="button" onClick={() => handleQuantity(item, item.quantity + 1)} className="text-textPrimary">
+                <button type="button" aria-label={`Increase ${item.product.name || item.product.title} quantity`} disabled={isPending || item.quantity >= Number(item.product.stock ?? item.product.stockQuantity ?? Infinity)} onClick={() => handleQuantity(item, item.quantity + 1)} className="text-textPrimary disabled:opacity-40">
                   <FiPlus />
                 </button>
               </div>
@@ -142,12 +159,12 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
         ))}
       </div>
 
-      <div className="w-full rounded-[32px] border border-border bg-white p-6 shadow-card xl:sticky xl:top-28 xl:max-w-[360px]">
+      <div className="w-full rounded-[32px] border border-border bg-surface p-6 shadow-card xl:sticky xl:top-28 xl:max-w-[360px]">
         <div className="space-y-5">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-textPrimary">Order summary</h2>
             <p className="mt-2 text-sm leading-6 text-textSecondary">
-              Review your totals before moving to checkout.
+              Product totals are estimated here. Shipping, tax, and coupons are confirmed by the server after you select an address at checkout.
             </p>
           </div>
 
@@ -173,6 +190,9 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
 
           {!hideActions ? (
             <div className="space-y-3">
+              <div className="rounded-[20px] border border-border bg-surface px-4 py-3 text-sm text-textSecondary">
+                Have a coupon? You can validate it securely against your delivery address at checkout.
+              </div>
               <Button
                 fullWidth
                 onClick={() => {

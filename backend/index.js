@@ -23,8 +23,6 @@ const { connectToDB } = require("./database/db");
 
 const server = express();
 
-connectToDB();
-
 const normalizeOrigin = (origin = "") => origin.trim().replace(/\/+$/, "");
 const isVercelOrigin = (origin = "") => {
     try {
@@ -60,7 +58,7 @@ server.use(
             const normalizedOrigin = normalizeOrigin(origin);
             const isAllowed =
                 allowedOrigins.includes(normalizedOrigin) ||
-                isVercelOrigin(normalizedOrigin) ||
+                (process.env.ALLOW_VERCEL_PREVIEWS === "true" && isVercelOrigin(normalizedOrigin)) ||
                 isLocalOrigin(normalizedOrigin);
 
             callback(null, isAllowed ? normalizedOrigin : false);
@@ -70,6 +68,15 @@ server.use(
         methods: ["GET", "POST", "PATCH", "DELETE"],
     })
 );
+server.disable("x-powered-by");
+server.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+    next();
+});
 server.use(express.json({ limit: "2mb" }));
 server.use(express.urlencoded({ extended: true }));
 server.use(cookieParser());
@@ -105,16 +112,23 @@ server.get("/", (req, res) => {
 });
 
 server.use((err, req, res, next) => {
-    console.log(err);
-    res.status(err.status || 500).json({ message: err.message || "Internal server error" });
+    const status = err.status || 500;
+    console.error(`[request-error] ${req.method} ${req.path} status=${status} name=${err.name || "Error"}`);
+    const message = status >= 500 && process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : err.message || "Internal server error";
+    res.status(status).json({ message });
 });
 
 const PORT = process.env.PORT || 8000;
 
 if (process.env.NODE_ENV !== "production") {
-    server.listen(PORT, () => {
-        console.log(`server [STARTED] ~ http://localhost:${PORT}`);
-    });
+    connectToDB()
+        .then(() => server.listen(PORT, () => console.log(`server [STARTED] ~ http://localhost:${PORT}`)))
+        .catch((error) => {
+            console.error(`[startup] Database initialization failed: ${error.name || "DatabaseError"}`);
+            process.exitCode = 1;
+        });
 }
 
 module.exports = server;

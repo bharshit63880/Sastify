@@ -112,7 +112,7 @@
   }
 
   body {
-    @apply min-h-screen overflow-x-hidden bg-page font-sans text-primary antialiased;
+    @apply min-h-screen overflow-x-hidden bg-page font-sans text-text-primary antialiased;
     margin: 0;
     background-image: var(--gradient-hero);
     background-attachment: fixed;

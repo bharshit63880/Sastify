@@ -66,7 +66,7 @@ export const CategoryPage = () => {
 
     return (
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(280px,0.78fr)]">
-        <div className="rounded-[28px] border border-border bg-white p-5 shadow-card">
+        <div className="rounded-[28px] border border-border bg-surface p-5 shadow-card">
           <div className="flex flex-wrap items-center gap-2">
             {ancestry.length ? (
               ancestry.map((item, index) => (
@@ -77,7 +77,7 @@ export const CategoryPage = () => {
                       "inline-flex rounded-full border px-4 py-2 text-sm transition",
                       index === ancestry.length - 1
                         ? "border-primary bg-primary text-white"
-                        : "border-border bg-surface text-textSecondary hover:bg-white hover:text-textPrimary",
+                        : "border-border bg-surface text-textSecondary hover:bg-surface-raised hover:text-textPrimary",
                     ].join(" ")}
                   >
                     {item.name}
@@ -92,7 +92,7 @@ export const CategoryPage = () => {
                 <Link
                   key={item._id}
                   to={getCategoryHref(item)}
-                  className="inline-flex rounded-full border border-border bg-surface px-4 py-2 text-sm text-textSecondary transition hover:bg-white hover:text-textPrimary"
+                  className="inline-flex rounded-full border border-border bg-surface px-4 py-2 text-sm text-textSecondary transition hover:bg-surface-raised hover:text-textPrimary"
                 >
                   {item.name}
                 </Link>
@@ -111,7 +111,7 @@ export const CategoryPage = () => {
                   {categoryNode?.children.length ? "Explore the next layer" : "Nearby categories"}
                 </p>
               </div>
-              <span className="rounded-full border border-border bg-white px-3 py-1.5 text-sm text-textPrimary">
+              <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-textPrimary">
                 {relatedCategories.length}
               </span>
             </div>
@@ -125,7 +125,7 @@ export const CategoryPage = () => {
                   <Link
                     key={item._id}
                     to={getCategoryHref(item)}
-                    className="rounded-[24px] border border-border bg-white px-4 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-card"
+                    className="rounded-[24px] border border-border bg-surface px-4 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-card"
                   >
                     <p className="text-base font-semibold tracking-tight text-textPrimary">{item.name}</p>
                     <p className="mt-2 text-sm leading-6 text-textSecondary">

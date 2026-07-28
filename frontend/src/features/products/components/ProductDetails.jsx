@@ -1,353 +1,199 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { FiHeart, FiMinus, FiPlus, FiShoppingBag, FiStar, FiTruck } from "react-icons/fi";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { FiCheck, FiHeart, FiMinus, FiPlus, FiShare2, FiShoppingBag, FiStar, FiTruck } from "react-icons/fi";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { EmptyState } from "../../../components/EmptyState";
-import { LoadingState } from "../../../components/LoadingState";
 import { Button } from "../../../components/ui/Button";
 import { PageWrapper } from "../../../components/ui/PageWrapper";
-import { Section } from "../../../components/ui/Section";
+import { Skeleton, SkeletonRegion } from "../../../components/ui/Skeleton";
 import { formatPrice } from "../../../utils/currencyFormatter";
 import { selectLoggedInUser } from "../../auth/AuthSlice";
 import { addGuestCartItem, addToCartAsync } from "../../cart/CartSlice";
-import { fetchReviewsByProductIdAsync, selectReviews } from "../../review/ReviewSlice";
-import {
-  createWishlistItemAsync,
-  deleteWishlistItemByIdAsync,
-  selectWishlistItems,
-} from "../../wishlist/WishlistSlice";
-import {
-  clearSelectedProduct,
-  fetchProductByIdAsync,
-  selectProductFetchStatus,
-  selectSelectedProduct,
-} from "../ProductSlice";
-import { ProductCard } from "./ProductCard";
-import { ProductVisual } from "./ProductVisual";
-import { rememberViewedProduct } from "../../home/recentlyViewed";
+import { ProductShelf } from "../../home/components/ProductShelf";
+import { fetchRecentlyViewedProducts, rememberViewedProduct } from "../../home/recentlyViewed";
+import { fetchReviewsByProductIdAsync, selectReviewErrors, selectReviewFetchStatus, selectReviews } from "../../review/ReviewSlice";
+import { ReviewExperience } from "../../review/components/ReviewExperience";
+import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from "../../wishlist/WishlistSlice";
+import { clearSelectedProduct, fetchProductByIdAsync, selectProductErrors, selectProductFetchStatus, selectSelectedProduct } from "../ProductSlice";
+import { ProductGallery } from "./ProductGallery";
+import { getProductMedia, getProductName, getProductStock, validateProductSelection } from "../productDetailPresentation";
+
+const ProductDetailsSkeleton = () => (
+  <PageWrapper className="py-6"><SkeletonRegion label="Loading product details"><div className="grid gap-8 lg:grid-cols-[1.15fr_.85fr]"><Skeleton className="aspect-square rounded-2xl" /><div className="space-y-5">{[32, 72, 24, 52, 120, 52].map((height, index) => <Skeleton key={index} style={{ height }} className="w-full rounded-xl" />)}</div></div></SkeletonRegion></PageWrapper>
+);
+
+const Seo = ({ product }) => {
+  const location = useLocation();
+  useEffect(() => {
+    const name = getProductName(product);
+    const title = product.seoTitle || `${name} | Sastify`;
+    const description = product.seoDescription || product.shortDescription || product.description || "";
+    document.title = title;
+    const setMeta = (selector, attrs) => {
+      let node = document.head.querySelector(selector);
+      if (!node) { node = document.createElement("meta"); document.head.appendChild(node); }
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    };
+    setMeta('meta[name="description"]', { name: "description", content: description.slice(0, 160) });
+    setMeta('meta[property="og:title"]', { property: "og:title", content: title });
+    setMeta('meta[property="og:description"]', { property: "og:description", content: description.slice(0, 160) });
+    setMeta('meta[property="og:type"]', { property: "og:type", content: "product" });
+    setMeta('meta[name="twitter:card"]', { name: "twitter:card", content: "summary_large_image" });
+    const canonical = `${window.location.origin}${location.pathname}`;
+    let link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
+    link.href = canonical;
+    const data = {
+      "@context": "https://schema.org", "@type": "Product", name,
+      image: getProductMedia(product).filter((item) => item.type === "image").map((item) => item.src),
+      description, sku: product.sku || product._id,
+      brand: product.brand?.name ? { "@type": "Brand", name: product.brand.name } : undefined,
+      offers: { "@type": "Offer", priceCurrency: "INR", price: product.price, availability: getProductStock(product) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock", url: canonical },
+    };
+    if (Number(product.rating) > 0 && Number(product.reviewCount) > 0) data.aggregateRating = { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviewCount };
+    let script = document.getElementById("product-json-ld");
+    if (!script) { script = document.createElement("script"); script.id = "product-json-ld"; script.type = "application/ld+json"; document.head.appendChild(script); }
+    script.textContent = JSON.stringify(data);
+    return () => script?.remove();
+  }, [location.pathname, product]);
+  return null;
+};
 
 export const ProductDetails = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
   const product = useSelector(selectSelectedProduct);
-  const productFetchStatus = useSelector(selectProductFetchStatus);
+  const productStatus = useSelector(selectProductFetchStatus);
+  const productError = useSelector(selectProductErrors);
   const reviews = useSelector(selectReviews);
+  const reviewStatus = useSelector(selectReviewFetchStatus);
+  const reviewError = useSelector(selectReviewErrors);
   const loggedInUser = useSelector(selectLoggedInUser);
   const wishlistItems = useSelector(selectWishlistItems);
-
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [errors, setErrors] = useState({});
+  const [shared, setShared] = useState(false);
+  const [recent, setRecent] = useState([]);
+  const purchaseRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchProductByIdAsync(id));
     dispatch(fetchReviewsByProductIdAsync(id));
-
-    return () => {
-      dispatch(clearSelectedProduct());
-    };
+    return () => dispatch(clearSelectedProduct());
   }, [dispatch, id]);
 
   useEffect(() => {
-    setSelectedImage(0);
-    setQuantity(1);
-    if (product?._id) rememberViewedProduct(product._id);
+    if (!product?._id) return;
+    rememberViewedProduct(product._id);
+    fetchRecentlyViewedProducts().then((items) => setRecent(items.filter((item) => item._id !== product._id))).catch(() => setRecent([]));
+    setColor(""); setSize(""); setQuantity(1); setErrors({});
   }, [product?._id]);
 
-  const galleryImages = useMemo(() => {
-    const images = product?.images?.filter(Boolean) || [];
-    if (images.length) return images;
-    if (product?.thumbnail) return [product.thumbnail];
-    return [""];
-  }, [product?.images, product?.thumbnail]);
-
+  const name = getProductName(product);
+  const stock = getProductStock(product);
+  const media = useMemo(() => getProductMedia(product), [product]);
   const isWishlisted = wishlistItems.some((item) => item.product?._id === product?._id);
-  const stock = Number(product?.stock || product?.stockQuantity || 0);
+  const infoGroups = [
+    { title: "Specifications", items: product?.specs?.map((item) => `${item.label}: ${item.value}`) },
+    { title: "Features", items: product?.highlights },
+    { title: "Shipping", text: product?.shippingText },
+    { title: "Returns", text: product?.returnPolicy },
+    { title: "Warranty", text: product?.warranty },
+  ].filter((group) => group.text || group.items?.length);
 
-  const handleAddToCart = () => {
-    const payload = {
-      product: product._id,
-      quantity,
-      color: selectedColor,
-      size: selectedSize,
-    };
-
-    if (loggedInUser) {
-      dispatch(addToCartAsync(payload));
+  const purchase = (buyNow = false) => {
+    const nextErrors = validateProductSelection({ product, color, size, quantity });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      purchaseRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
       return;
     }
-
-    dispatch(addGuestCartItem({ product, quantity, color: selectedColor, size: selectedSize }));
+    const payload = { product: product._id, quantity, color, size };
+    if (loggedInUser) dispatch(addToCartAsync(payload));
+    else dispatch(addGuestCartItem({ product, quantity, color, size }));
+    if (buyNow) navigate(loggedInUser ? "/checkout" : "/login", { state: { from: "/checkout" } });
   };
 
-  const handleWishlist = () => {
-    if (!loggedInUser) {
-      navigate("/login");
-      return;
-    }
-
-    if (isWishlisted) {
-      const entry = wishlistItems.find((item) => item.product?._id === product._id);
-      if (entry) dispatch(deleteWishlistItemByIdAsync(entry._id));
-      return;
-    }
-
-    dispatch(createWishlistItemAsync({ product: product._id }));
+  const toggleWishlist = () => {
+    if (!loggedInUser) return navigate("/login");
+    const entry = wishlistItems.find((item) => item.product?._id === product._id);
+    return entry ? dispatch(deleteWishlistItemByIdAsync(entry._id)) : dispatch(createWishlistItemAsync({ product: product._id }));
   };
 
-  if (productFetchStatus === "pending" || !product) {
-    return <LoadingState cards={1} />;
-  }
+  const share = async () => {
+    const data = { title: name, text: product.shortDescription || product.description, url: window.location.href };
+    try {
+      if (navigator.share) await navigator.share(data);
+      else await navigator.clipboard.writeText(data.url);
+      setShared(true); window.setTimeout(() => setShared(false), 2200);
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        await navigator.clipboard?.writeText(data.url);
+        setShared(true);
+      }
+    }
+  };
 
-  if (!product?._id) {
-    return (
-      <EmptyState
-        title="Product unavailable"
-        description="The product you’re looking for is no longer available or may have moved."
-        actionLabel="Back to catalog"
-        actionTo="/products"
-      />
-    );
-  }
+  if (productStatus === "pending" || (productStatus === "idle" && !product)) return <ProductDetailsSkeleton />;
+  if (productStatus === "rejected" || !product?._id) return <EmptyState title="Product unavailable" description={productError?.message || "This product may have moved or is no longer available."} actionLabel="Back to catalog" actionTo="/products" />;
+
+  const purchasePanel = (
+    <div ref={purchaseRef} className="space-y-6">
+      <div>
+        <p className="text-label text-brand-primary">{product.brand?.name || product.brandName || "Brand"}</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-text-primary sm:text-5xl">{name}</h1>
+        {product.shortDescription ? <p className="mt-4 text-base leading-7 text-text-secondary">{product.shortDescription}</p> : null}
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-text-secondary">
+          {Number(product.rating) > 0 ? <span className="inline-flex items-center gap-1"><FiStar className="fill-warning text-warning" /><strong className="text-text-primary">{Number(product.rating).toFixed(1)}</strong></span> : null}
+          {Number(product.reviewCount || reviews.length) > 0 ? <a href="#reviews" className="underline-offset-4 hover:underline">{product.reviewCount || reviews.length} reviews</a> : null}
+          <span className={stock ? "text-success" : "text-error"}>{stock ? `${stock} in stock` : "Out of stock"}</span>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-end gap-3 border-y border-default py-5">
+        <strong className="text-4xl tracking-[-0.05em] text-text-primary">{formatPrice(product.price)}</strong>
+        {product.originalPrice > product.price ? <><span className="text-lg text-text-secondary line-through">{formatPrice(product.originalPrice)}</span><span className="rounded-pill bg-success/10 px-3 py-1 text-sm font-semibold text-success">{product.discountPercent || product.discountPercentage}% off</span></> : null}
+      </div>
+      {product.colors?.length ? <fieldset aria-describedby={errors.color ? "color-error" : undefined}><legend className="text-label text-text-secondary">Color</legend><div className="mt-3 flex flex-wrap gap-2">{product.colors.map((item) => <button key={item} type="button" aria-pressed={color === item} onClick={() => { setColor(item); setErrors((value) => ({ ...value, color: undefined })); }} className={`rounded-pill border px-4 py-2 text-sm font-semibold ${color === item ? "border-brand-primary bg-brand-primary text-white" : "border-default bg-surface-raised text-text-primary"}`}>{item}</button>)}</div>{errors.color ? <p id="color-error" role="alert" className="mt-2 text-sm text-error">{errors.color}</p> : null}</fieldset> : null}
+      {product.sizes?.length ? <fieldset aria-describedby={errors.size ? "size-error" : undefined}><legend className="text-label text-text-secondary">Size</legend><div className="mt-3 flex flex-wrap gap-2">{product.sizes.map((item) => <button key={item} type="button" aria-pressed={size === item} onClick={() => { setSize(item); setErrors((value) => ({ ...value, size: undefined })); }} className={`min-w-12 rounded-pill border px-4 py-2 text-sm font-semibold ${size === item ? "border-brand-primary bg-brand-primary text-white" : "border-default bg-surface-raised text-text-primary"}`}>{item}</button>)}</div>{errors.size ? <p id="size-error" role="alert" className="mt-2 text-sm text-error">{errors.size}</p> : null}</fieldset> : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="neumorphic-control inline-flex items-center rounded-pill p-1">
+          <button aria-label="Decrease quantity" type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="grid h-10 w-10 place-items-center rounded-full text-text-primary"><FiMinus /></button>
+          <span className="min-w-10 text-center font-semibold text-text-primary" aria-live="polite">{quantity}</span>
+          <button aria-label="Increase quantity" type="button" disabled={quantity >= stock} onClick={() => setQuantity((value) => Math.min(stock, value + 1))} className="grid h-10 w-10 place-items-center rounded-full text-text-primary disabled:opacity-40"><FiPlus /></button>
+        </div>
+        <Button onClick={() => purchase(false)} disabled={!stock} icon={<FiShoppingBag />} className="flex-1">Add to cart</Button>
+        <Button onClick={() => purchase(true)} disabled={!stock} variant="secondary" className="flex-1">Buy now</Button>
+        <Button onClick={toggleWishlist} variant="ghost" aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}><FiHeart className={isWishlisted ? "fill-error text-error" : ""} /></Button>
+      </div>
+      {errors.stock || errors.quantity ? <p role="alert" className="text-sm text-error">{errors.stock || errors.quantity}</p> : null}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {product.shippingText ? <div className="rounded-xl border border-default bg-surface-muted p-4"><FiTruck className="mb-2 text-brand-primary" /><p className="text-sm text-text-secondary">{product.shippingText}</p></div> : null}
+        <button type="button" onClick={share} className="rounded-xl border border-default bg-surface-muted p-4 text-left"><FiShare2 className="mb-2 text-brand-primary" /><p className="text-sm text-text-secondary">Share this product</p></button>
+      </div>
+    </div>
+  );
 
   return (
-    <PageWrapper className="py-6 md:py-8">
-      <Section className="pt-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-textSecondary">
-          <Link to="/" className="hover:text-textPrimary">
-            Home
-          </Link>
-          <span>/</span>
-          <Link to={`/category/${product.category?.slug || ""}`} className="hover:text-textPrimary">
-            {product.category?.name || "Category"}
-          </Link>
-          <span>/</span>
-          <span className="text-textPrimary">{product.name || product.title}</span>
-        </div>
-      </Section>
-
-      <Section className="pt-5">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[32px] border border-border bg-white p-5 shadow-card">
-            <div className="grid gap-4 md:grid-cols-[84px_1fr]">
-              <div className="order-2 grid grid-cols-4 gap-3 md:order-1 md:grid-cols-1">
-                {galleryImages.map((image, index) => (
-                  <button
-                    key={`${image}-${index}`}
-                    type="button"
-                    onClick={() => setSelectedImage(index)}
-                    className={[
-                      "overflow-hidden rounded-[20px] border bg-surface p-2 transition",
-                      selectedImage === index ? "border-primary" : "border-border hover:border-primary/20",
-                    ].join(" ")}
-                  >
-                    <div className="h-16 w-full">
-                      <ProductVisual
-                        product={{ ...product, thumbnail: image, images: [image] }}
-                        alt={`${product.name || product.title} ${index + 1}`}
-                        imageClassName="h-full w-full object-cover"
-                      />
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="order-1 overflow-hidden rounded-[28px] border border-border bg-surface p-4 md:order-2 md:p-6">
-                <div className="mx-auto aspect-[4/4.8] w-full max-w-2xl overflow-hidden rounded-[22px]">
-                  <ProductVisual
-                    product={{
-                      ...product,
-                      thumbnail: galleryImages[selectedImage] || product.thumbnail,
-                      images: [galleryImages[selectedImage] || product.thumbnail],
-                    }}
-                    alt={product.name || product.title}
-                    imageClassName="h-full w-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6 rounded-[32px] border border-border bg-white p-6 shadow-card md:p-8">
-            <div className="space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-textSecondary">
-                {product.brand?.name || product.brandName || "Sastify"}
-              </p>
-              <h1 className="text-3xl font-semibold tracking-[-0.04em] text-textPrimary md:text-4xl">
-                {product.name || product.title}
-              </h1>
-              <p className="body-copy max-w-xl line-clamp-3">
-                {product.description || "A clean, premium product detail experience with less friction and clearer purchase actions."}
-              </p>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-textSecondary">
-                <span className="inline-flex items-center gap-1">
-                  <FiStar className="fill-current text-[#d19b2d]" />
-                  <span className="font-medium text-textPrimary">{Number(product.rating || 0).toFixed(1)}</span>
-                </span>
-                <span>{Number(product.reviewCount || reviews.length || 0)} reviews</span>
-                <span className={stock > 0 ? "text-textSecondary" : "text-[#c74d6f]"}>
-                  {stock > 0 ? `${stock} in stock` : "Out of stock"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-end gap-3 border-y border-border py-5">
-              <p className="text-4xl font-semibold tracking-[-0.04em] text-textPrimary">{formatPrice(product.price)}</p>
-              {product.originalPrice > product.price ? (
-                <>
-                  <p className="text-lg text-textSecondary line-through">{formatPrice(product.originalPrice)}</p>
-                  <span className="rounded-full bg-surface px-3 py-1 text-sm font-semibold text-textPrimary">
-                    Save {product.discountPercent}%
-                  </span>
-                </>
-              ) : null}
-            </div>
-
-            {product.colors?.length ? (
-              <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Color</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={[
-                        "rounded-full border px-4 py-2 text-sm font-medium transition",
-                        selectedColor === color
-                          ? "border-primary bg-primary text-white"
-                          : "border-border bg-white text-textPrimary hover:border-primary/15",
-                      ].join(" ")}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {product.sizes?.length ? (
-              <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-textSecondary">Size</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={[
-                        "rounded-full border px-4 py-2 text-sm font-medium transition",
-                        selectedSize === size
-                          ? "border-primary bg-primary text-white"
-                          : "border-border bg-white text-textPrimary hover:border-primary/15",
-                      ].join(" ")}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="inline-flex items-center gap-5 rounded-full border border-border bg-surface px-5 py-3">
-                <button type="button" onClick={() => setQuantity((prev) => Math.max(1, prev - 1))} className="text-textPrimary">
-                  <FiMinus />
-                </button>
-                <span className="min-w-[16px] text-center text-sm font-semibold text-textPrimary">{quantity}</span>
-                <button type="button" onClick={() => setQuantity((prev) => prev + 1)} className="text-textPrimary">
-                  <FiPlus />
-                </button>
-              </div>
-
-              <Button
-                icon={<FiShoppingBag />}
-                onClick={handleAddToCart}
-                disabled={stock <= 0}
-                fullWidth
-                className="sm:flex-1"
-              >
-                Add to cart
-              </Button>
-
-              <Button variant="secondary" onClick={handleWishlist} className="sm:w-auto">
-                <FiHeart className={isWishlisted ? "fill-current text-[#d14d72]" : ""} />
-              </Button>
-            </div>
-
-            <div className="rounded-[24px] border border-border bg-surface px-5 py-4">
-              <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-textPrimary shadow-[0_8px_20px_rgba(17,17,17,0.06)]">
-                  <FiTruck />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-textPrimary">Delivery and returns</p>
-                  <p className="mt-1 text-sm leading-6 text-textSecondary">
-                    {product.shippingText || "Delivery details are confirmed at checkout. Returns follow the seller policy."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section>
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[30px] border border-border bg-white p-6 shadow-card">
-            <h2 className="text-2xl font-semibold tracking-tight text-textPrimary">Description</h2>
-            <p className="mt-4 body-copy">
-              {product.description || "This product is part of the current curated catalog."}
-            </p>
-            {product.highlights?.length ? (
-              <div className="mt-5 grid gap-3">
-                {product.highlights.map((item) => (
-                  <div key={item} className="rounded-[20px] border border-border bg-surface px-4 py-3 text-sm text-textPrimary">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="rounded-[30px] border border-border bg-white p-6 shadow-card">
-            <h2 className="text-2xl font-semibold tracking-tight text-textPrimary">Reviews</h2>
-            <div className="mt-4 space-y-4">
-              {reviews.length ? (
-                reviews.slice(0, 4).map((review) => (
-                  <div key={review._id} className="rounded-[20px] border border-border bg-surface p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <p className="text-sm font-semibold text-textPrimary">{review.user?.name || "Verified buyer"}</p>
-                      <span className="inline-flex items-center gap-1 text-sm text-textSecondary">
-                        <FiStar className="fill-current text-[#d19b2d]" />
-                        <span className="font-medium text-textPrimary">{review.rating}</span>
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-textSecondary">{review.comment}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-textSecondary">No reviews yet for this product.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {product.relatedProducts?.length ? (
-        <Section>
-          <div className="space-y-6">
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-textPrimary">You may also like</h2>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              {product.relatedProducts.slice(0, 4).map((item) => (
-                <ProductCard key={item._id} product={item} />
-              ))}
-            </div>
-          </div>
-        </Section>
-      ) : null}
+    <PageWrapper className="pb-28 pt-5 md:pb-10">
+      <Seo product={product} />
+      <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap gap-2 text-sm text-text-secondary"><Link to="/">Home</Link><span>/</span><Link to={`/category/${product.category?.slug || ""}`}>{product.category?.name || "Products"}</Link><span>/</span><span aria-current="page" className="text-text-primary">{name}</span></nav>
+      <motion.div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]" initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <section aria-label="Product media" className="rounded-2xl border border-default bg-surface p-3 shadow-sm sm:p-5"><ProductGallery media={media} name={name} /></section>
+        <aside className="lg:sticky lg:top-28 lg:self-start"><div className="rounded-2xl border border-default bg-surface-glass p-5 shadow-md backdrop-blur-xl sm:p-7">{purchasePanel}</div></aside>
+      </motion.div>
+      <section className="mt-10 rounded-2xl border border-default bg-surface p-6 sm:p-8"><h2 className="text-3xl font-semibold tracking-tight text-text-primary">Product details</h2>{product.description ? <p className="mt-5 max-w-4xl whitespace-pre-line text-base leading-8 text-text-secondary">{product.description}</p> : null}{infoGroups.length ? <div className="mt-8 grid gap-4 md:grid-cols-2">{infoGroups.map((group) => <div key={group.title} className="rounded-xl bg-surface-muted p-5"><h3 className="font-semibold text-text-primary">{group.title}</h3>{group.text ? <p className="mt-2 text-sm leading-6 text-text-secondary">{group.text}</p> : <ul className="mt-3 space-y-2">{group.items.map((item) => <li key={item} className="flex gap-2 text-sm text-text-secondary"><FiCheck className="mt-1 shrink-0 text-success" />{item}</li>)}</ul>}</div>)}</div> : null}<dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-default pt-5 text-sm">{product._id ? <div><dt className="text-text-secondary">SKU</dt><dd className="font-medium text-text-primary">{product.sku || product._id}</dd></div> : null}{product.category?.name ? <div><dt className="text-text-secondary">Category</dt><dd className="font-medium text-text-primary">{product.category.name}</dd></div> : null}</dl></section>
+      <section id="reviews" className="scroll-mt-28 mt-10 rounded-2xl border border-default bg-surface p-6 sm:p-8"><h2 className="mb-8 text-3xl font-semibold tracking-tight text-text-primary">Customer reviews</h2><ReviewExperience reviews={reviews} status={reviewStatus} error={reviewError} averageRating={product.rating || product.ratingAverage} /></section>
+      {product.relatedProducts?.length ? <section className="mt-12"><ProductShelf id="similar-products" eyebrow="Discover more" title="Similar products" products={product.relatedProducts} /></section> : null}
+      {recent.length ? <section className="mt-12"><ProductShelf id="recently-viewed-product" eyebrow="Continue exploring" title="Recently viewed" products={recent} /></section> : null}
+      <div className="fixed inset-x-0 bottom-0 z-sticky border-t border-default bg-surface-glass px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-[auto_1fr_1fr] items-center gap-2"><strong className="pr-2 text-lg text-text-primary">{formatPrice(product.price)}</strong><Button onClick={() => purchase(false)} disabled={!stock}>Add to cart</Button><Button onClick={() => purchase(true)} disabled={!stock} variant="secondary">Buy now</Button></div>
+      </div>
+      <span className="sr-only" role="status" aria-live="polite">{shared ? "Product link copied" : ""}</span>
     </PageWrapper>
   );
 };

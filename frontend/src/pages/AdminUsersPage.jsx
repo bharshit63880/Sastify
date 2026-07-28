@@ -32,6 +32,7 @@ export const AdminUsersPage = () => {
   }, [search, users]);
 
   const handleUserUpdate = async (id, payload) => {
+    if (!window.confirm("Apply this user access change?")) return;
     await updateAdminUser(id, payload);
     loadUsers();
   };

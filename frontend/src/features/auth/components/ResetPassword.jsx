@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AuthShell } from "../../../components/ui/AuthShell";
 import { Button } from "../../../components/ui/Button";
-import { Input } from "../../../components/ui/Input";
+import { PasswordField } from "./PasswordField";
 import {
   clearResetPasswordError,
   clearResetPasswordSuccessMessage,
@@ -71,7 +71,7 @@ export const ResetPassword = () => {
     >
       <div className="space-y-6">
         <form onSubmit={handleSubmit(handleResetPassword)} className="space-y-4">
-          <Input
+          <PasswordField showStrength
             label="New password"
             type="password"
             error={errors.password?.message}
@@ -83,7 +83,7 @@ export const ResetPassword = () => {
               },
             })}
           />
-          <Input
+          <PasswordField
             label="Confirm new password"
             type="password"
             error={errors.confirmPassword?.message}

@@ -26,7 +26,7 @@ export const ProductShelf = ({ id, eyebrow, title, description, products = [], l
       >
         <div className="max-w-2xl">
           <p className="text-label text-text-accent">{eyebrow}</p>
-          <h2 id={`${id}-title`} className="mt-3 text-section-title text-primary">{title}</h2>
+          <h2 id={`${id}-title`} className="mt-3 text-section-title text-text-primary">{title}</h2>
           {description ? <p className="mt-3 body-copy">{description}</p> : null}
         </div>
         <div className="flex items-center gap-2">

@@ -145,6 +145,12 @@ exports.verifyPayment = async (req, res) => {
         if (!payment) {
             return res.status(404).json({ message: "Payment order not found" });
         }
+        if (payment.order && payment.verified) {
+            const existingOrder = await require("../models/Order").findById(payment.order);
+            if (existingOrder) {
+                return res.status(200).json({ verified: true, order: existingOrder, replayed: true });
+            }
+        }
 
         const verified = verifyGatewaySignature({
             orderId: gatewayOrderId,

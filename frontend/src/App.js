@@ -5,10 +5,7 @@ import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { RouteFallback } from "./components/RouteFallback";
 import { selectIsAuthChecked, selectLoggedInUser } from "./features/auth/AuthSlice";
 import { Protected } from "./features/auth/components/Protected";
-import { fetchAllBrandsAsync } from "./features/brands/BrandSlice";
-import { fetchAllCategoriesAsync } from "./features/categories/CategoriesSlice";
 import { hydrateGuestCart, selectCartItems, selectIsGuestCart, syncGuestCartAsync } from "./features/cart/CartSlice";
-import { fetchStorefrontOverviewAsync } from "./features/storefront/StorefrontSlice";
 import { useAuthCheck } from "./hooks/useAuth/useAuthCheck";
 import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUserDetails";
 import { AdminLayout } from "./layout/AdminLayout";
@@ -88,11 +85,25 @@ function App() {
   useFetchLoggedInUserDetails(loggedInUser);
 
   useEffect(() => {
-    dispatch(fetchAllCategoriesAsync());
-    dispatch(fetchAllBrandsAsync());
-    dispatch(fetchStorefrontOverviewAsync());
     dispatch(hydrateGuestCart());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!isAuthChecked) return undefined;
+    const preloadCommonRoutes = () => {
+      import("./pages/ProductsPage");
+      import("./pages/ProductDetailsPage");
+      import("./pages/CartPage");
+      import("./pages/SearchResultsPage");
+    };
+    const idleId = "requestIdleCallback" in window
+      ? window.requestIdleCallback(preloadCommonRoutes, { timeout: 1800 })
+      : window.setTimeout(preloadCommonRoutes, 600);
+    return () => {
+      if ("cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+    };
+  }, [isAuthChecked]);
 
   useEffect(() => {
     if (loggedInUser?.isVerified && isGuestCart && cartItems.length) dispatch(syncGuestCartAsync(cartItems));

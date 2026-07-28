@@ -108,7 +108,7 @@ export const SearchCommand = () => {
             onChange={(event) => { setQuery(event.target.value); setActiveIndex(-1); }}
             onKeyDown={onKeyDown}
             placeholder="Search products, categories, and brands"
-            className="min-w-0 flex-1 bg-transparent text-base text-primary outline-none placeholder:text-muted sm:text-lg"
+            className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-muted sm:text-lg"
             role="combobox"
             aria-expanded={options.length > 0}
             aria-controls="search-command-results"
@@ -129,7 +129,7 @@ export const SearchCommand = () => {
             </div>
           ) : status === "rejected" ? (
             <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-center">
-              <p className="font-semibold text-primary">Search is temporarily unavailable</p>
+              <p className="font-semibold text-text-primary">Search is temporarily unavailable</p>
               <button type="button" className="text-sm font-semibold text-brand-primary" onClick={() => setQuery((value) => `${value} `)}>Try again</button>
             </div>
           ) : options.length ? (
@@ -149,7 +149,7 @@ export const SearchCommand = () => {
                     <ImageWithFallback src={option.item.thumbnail || option.item.images?.[0]} alt="" wrapperClassName="h-14 w-14 shrink-0 rounded-lg" className="object-cover" />
                   ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-primary"><FiSearch /></span>}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold text-primary">{option.label}</span>
+                    <span className="block truncate font-semibold text-text-primary">{option.label}</span>
                     <span className="text-small">{option.type === "product" ? formatPrice(option.item.price) : option.type}</span>
                   </span>
                   <FiArrowRight className="text-muted" aria-hidden="true" />
@@ -160,7 +160,7 @@ export const SearchCommand = () => {
             <div className="space-y-7">
               {recent.length ? <TermSection icon={<FiClock />} title="Recent searches" terms={recent} onTerm={(term) => { setQuery(term); }} onClear={() => { localStorage.removeItem(RECENT_SEARCH_STORAGE_KEY); setRecent([]); }} /> : null}
               {results.trending?.length ? <TermSection icon={<FiTrendingUp />} title="Trending searches" terms={results.trending} onTerm={setQuery} /> : null}
-              {!recent.length && !results.trending?.length && query.length >= 2 ? <p className="py-16 text-center text-secondary">No suggestions found. Press Enter to search for “{query}”.</p> : null}
+              {!recent.length && !results.trending?.length && query.length >= 2 ? <p className="py-16 text-center text-text-secondary">No suggestions found. Press Enter to search for “{query}”.</p> : null}
             </div>
           )}
         </div>
@@ -172,11 +172,11 @@ export const SearchCommand = () => {
 const TermSection = ({ icon, title, terms, onTerm, onClear }) => (
   <section>
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">{icon}{title}</h3>
-      {onClear ? <button type="button" onClick={onClear} className="text-xs font-semibold text-secondary hover:text-primary">Clear</button> : null}
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">{icon}{title}</h3>
+      {onClear ? <button type="button" onClick={onClear} className="text-xs font-semibold text-text-secondary hover:text-text-primary">Clear</button> : null}
     </div>
     <div className="flex flex-wrap gap-2">
-      {terms.map((term) => <button type="button" key={term} onClick={() => onTerm(term)} className="rounded-pill border border-default bg-surface-raised px-3 py-2 text-sm text-secondary hover:border-strong hover:text-primary">{term}</button>)}
+      {terms.map((term) => <button type="button" key={term} onClick={() => onTerm(term)} className="rounded-pill border border-default bg-surface-raised px-3 py-2 text-sm text-text-secondary hover:border-strong hover:text-text-primary">{term}</button>)}
     </div>
   </section>
 );

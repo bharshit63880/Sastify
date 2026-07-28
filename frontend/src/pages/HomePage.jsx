@@ -51,7 +51,7 @@ const AnnouncementBar = ({ productCount, categoryCount }) => (
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_14px_white]" aria-hidden="true" />
+      <span className="h-1.5 w-1.5 rounded-full bg-surface shadow-[0_0_14px_white]" aria-hidden="true" />
       {productCount ? `${productCount} active products` : "The current Sastify catalogue"}
       {categoryCount ? ` across ${categoryCount} categories` : " ready to explore"}
       <Link to="/products" className="inline-flex items-center gap-1 underline decoration-white/50 underline-offset-4">Browse now <FiArrowRight /></Link>
@@ -83,7 +83,7 @@ const Hero = ({ banner, products }) => {
             <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-4xl text-[clamp(3.2rem,8vw,7.8rem)] font-extrabold leading-[.88] tracking-[-.075em] text-white">
               {title}
             </motion.h1>
-            <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-2xl text-base leading-7 text-white/76 sm:text-xl sm:leading-8">{subtitle}</motion.p>
+            <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-xl sm:leading-8">{subtitle}</motion.p>
             <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }} className="mt-9 flex flex-wrap gap-3">
               <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />}>{primaryText}</Button>
               <Button to="#featured-categories" variant="glass" size="lg">Browse categories</Button>
@@ -103,7 +103,7 @@ const Hero = ({ banner, products }) => {
           </div>
         </div>
       </div>
-      <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-white/65" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
+      <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-white/70" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
         Scroll <FiArrowDown />
       </motion.a>
     </section>
@@ -116,7 +116,7 @@ const CategoryBento = ({ categories, counts, loading }) => {
     <section id="featured-categories" aria-labelledby="category-bento-title" className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <div className="mb-8 max-w-2xl">
         <p className="text-label text-text-accent">Shop by perspective</p>
-        <h2 id="category-bento-title" className="mt-3 text-section-title text-primary">Categories, composed differently</h2>
+        <h2 id="category-bento-title" className="mt-3 text-section-title text-text-primary">Categories, composed differently</h2>
         <p className="mt-3 body-copy">Move through the active catalogue by category.</p>
       </div>
       {loading ? (
@@ -138,9 +138,9 @@ const CategoryBento = ({ categories, counts, loading }) => {
                   <div>
                     <h3 className="text-2xl font-bold tracking-tight">{category.name}</h3>
                     <p className="mt-2 line-clamp-2 text-sm text-white/70">{category.description || `Explore ${category.name}`}</p>
-                    {counts[String(category._id)] ? <p className="mt-3 text-xs uppercase tracking-[.18em] text-white/55">{counts[String(category._id)]} products</p> : null}
+                    {counts[String(category._id)] ? <p className="mt-3 text-xs uppercase tracking-[.18em] text-white/60">{counts[String(category._id)]} products</p> : null}
                   </div>
-                  <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 transition group-hover:translate-x-1 group-hover:bg-white group-hover:text-[#0b1020]"><FiChevronRight /></span>
+                  <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 transition group-hover:translate-x-1 group-hover:bg-surface-raised group-hover:text-[#0b1020]"><FiChevronRight /></span>
                 </div>
               </Link>
             </motion.article>
@@ -159,9 +159,9 @@ const FlashSale = ({ products }) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(240,97,229,.22),transparent_27%),radial-gradient(circle_at_10%_90%,rgba(84,217,239,.17),transparent_30%)]" />
         <div className="relative grid gap-9 lg:grid-cols-[.65fr_1.35fr] lg:items-center">
           <div>
-            <p className="text-label text-white/55">Current offers</p>
+            <p className="text-label text-white/60">Current offers</p>
             <h2 id="current-offers-title" className="mt-4 text-4xl font-bold tracking-[-.05em] sm:text-5xl">Deals from the live catalogue</h2>
-            <p className="mt-5 text-base leading-7 text-white/65">No artificial countdown—just products currently marked as deals.</p>
+            <p className="mt-5 text-base leading-7 text-white/70">No artificial countdown—just products currently marked as deals.</p>
             <Button to="/products" variant="gradient" className="mt-7" rightIcon={<FiArrowRight />}>View all products</Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -171,8 +171,8 @@ const FlashSale = ({ products }) => {
                 <div className="min-w-0">
                   {Number(product.discountPercent || product.discountPercentage) > 0 ? <span className="text-xs font-bold text-[#f58bec]">{Number(product.discountPercent || product.discountPercentage)}% off</span> : null}
                   <p className="mt-1 line-clamp-2 font-semibold">{product.name || product.title}</p>
-                  <p className="mt-2 text-sm text-white/65">{formatPrice(product.price)}</p>
-                  {Number(product.stock || product.stockQuantity) > 0 ? <p className="mt-1 text-xs text-white/45">{Number(product.stock || product.stockQuantity)} available</p> : null}
+                  <p className="mt-2 text-sm text-white/70">{formatPrice(product.price)}</p>
+                  {Number(product.stock || product.stockQuantity) > 0 ? <p className="mt-1 text-xs text-white/50">{Number(product.stock || product.stockQuantity)} available</p> : null}
                 </div>
               </Link>
             ))}
@@ -208,12 +208,12 @@ const Brands = ({ brands }) => {
     <section aria-labelledby="brands-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
       <div className="text-center">
         <p className="text-label text-text-accent">Brands in the catalogue</p>
-        <h2 id="brands-title" className="mt-3 text-section-title text-primary">Featured brands</h2>
+        <h2 id="brands-title" className="mt-3 text-section-title text-text-primary">Featured brands</h2>
       </div>
       <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {brands.slice(0, 12).map((brand) => (
           <motion.div key={brand._id} whileHover={{ y: -4 }} className="glass-panel flex min-h-28 items-center justify-center rounded-[24px] p-5 text-center">
-            {brand.logo ? <img src={brand.logo} alt={brand.name} loading="lazy" width="140" height="60" className="max-h-12 max-w-[140px] object-contain dark:brightness-0 dark:invert" /> : <span className="font-bold tracking-tight text-primary">{brand.name}</span>}
+            {brand.logo ? <img src={brand.logo} alt={brand.name} loading="lazy" width="140" height="60" className="max-h-12 max-w-[140px] object-contain dark:brightness-0 dark:invert" /> : <span className="font-bold tracking-tight text-text-primary">{brand.name}</span>}
           </motion.div>
         ))}
       </div>
@@ -235,7 +235,7 @@ const TrustSection = () => {
         {items.map(({ icon: Icon, title, copy }) => (
           <div key={title} className="rounded-[26px] border border-default bg-surface p-6 shadow-sm">
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-text-accent"><Icon /></span>
-            <h3 className="mt-5 font-bold text-primary">{title}</h3>
+            <h3 className="mt-5 font-bold text-text-primary">{title}</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">{copy}</p>
           </div>
         ))}
@@ -252,7 +252,7 @@ const Newsletter = () => {
         <div className="rounded-[35px] bg-surface px-6 py-10 sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-14">
           <div className="max-w-xl">
             <p className="text-label text-text-accent">Newsletter</p>
-            <h2 id="newsletter-title" className="mt-3 text-section-title text-primary">Stay close to the catalogue</h2>
+            <h2 id="newsletter-title" className="mt-3 text-section-title text-text-primary">Stay close to the catalogue</h2>
             <p className="mt-3 body-copy">The signup interface is ready; subscription delivery will activate when a newsletter service is connected.</p>
           </div>
           <form className="mt-7 w-full max-w-xl lg:mt-0" onSubmit={(event) => { event.preventDefault(); setMessage("Newsletter subscriptions are not connected yet."); }}>

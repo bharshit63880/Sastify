@@ -5,21 +5,25 @@ import { Input } from "../components/ui/Input";
 import { PageWrapper } from "../components/ui/PageWrapper";
 import {
   createBrand,
+  createBanner,
   createCategory,
   createCoupon,
   deleteBrand,
+  deleteBanner,
   deleteCategory,
   getAdminOverview,
   getAdminUsers,
   getCoupons,
+  getBanners,
   updateAdminUser,
   updateCoupon,
+  updateBanner,
 } from "../features/admin/AdminApi";
 import { fetchAllBrands } from "../features/brands/BrandApi";
 import { fetchAllCategories } from "../features/categories/CategoriesApi";
 import { deleteProductById, fetchProducts, undeleteProductById } from "../features/products/ProductApi";
 
-const panelClassName = "rounded-[30px] border border-border bg-white p-5 shadow-card sm:p-6";
+const panelClassName = "rounded-[30px] border border-border bg-surface p-5 shadow-card sm:p-6";
 
 const StatCard = ({ label, value }) => (
   <div className={`${panelClassName} py-5`}>
@@ -38,8 +42,10 @@ export const AdminDashboardPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [brandList, setBrandList] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [coupon, setCoupon] = useState({
     code: "",
     title: "",
@@ -47,15 +53,18 @@ export const AdminDashboardPage = () => {
     discountValue: 10,
     minOrderValue: 0,
   });
+  const [banner, setBanner] = useState({ image: "", title: "", subtitle: "", ctaText: "", ctaLink: "", priority: 0, isActive: true });
 
   const loadDashboard = async () => {
-    const [overviewData, productData, usersData, couponsData, categoriesData, brandsData] = await Promise.all([
+    setLoadError("");
+    const [overviewData, productData, usersData, couponsData, categoriesData, brandsData, bannersData] = await Promise.all([
       getAdminOverview(),
       fetchProducts({ admin: true, pagination: { page: 1, limit: 8 } }),
       getAdminUsers(),
       getCoupons(),
       fetchAllCategories(),
       fetchAllBrands(),
+      getBanners(),
     ]);
 
     setOverview(overviewData);
@@ -64,10 +73,11 @@ export const AdminDashboardPage = () => {
     setCoupons(couponsData || []);
     setCategoryList(categoriesData || []);
     setBrandList(brandsData || []);
+    setBanners(bannersData || []);
   };
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard().catch((error) => setLoadError(error?.message || "Admin data is unavailable."));
   }, []);
 
   const summaryCards = useMemo(
@@ -78,6 +88,7 @@ export const AdminDashboardPage = () => {
             { label: "Total orders", value: Number(overview.totalOrders || 0).toLocaleString("en-IN") },
             { label: "Total users", value: Number(overview.totalUsers || 0).toLocaleString("en-IN") },
             { label: "Total products", value: Number(overview.totalProducts || 0).toLocaleString("en-IN") },
+            { label: "Average order value", value: `Rs. ${Number(overview.averageOrderValue || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}` },
           ]
         : [],
     [overview]
@@ -105,11 +116,13 @@ export const AdminDashboardPage = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {loadError ? <p role="alert" className="rounded-xl border border-error/30 bg-error/5 p-4 text-sm text-error">{loadError}</p> : null}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {summaryCards.map((card) => (
             <StatCard key={card.label} label={card.label} value={card.value} />
           ))}
         </div>
+        {overview ? <div className="grid gap-6 xl:grid-cols-2"><section className={panelClassName}><h2 className="text-2xl font-semibold text-text-primary">Order status breakdown</h2><div className="mt-5 space-y-3">{overview.orderStatusBreakdown?.map((row) => <div key={row._id || "unknown"} className="flex items-center justify-between rounded-xl bg-surface p-4"><span className="capitalize text-text-secondary">{(row._id || "unknown").replaceAll("_", " ")}</span><strong className="text-text-primary">{row.count}</strong></div>)}</div></section><section className={panelClassName}><h2 className="text-2xl font-semibold text-text-primary">Top products</h2><div className="mt-5 space-y-3">{overview.topProducts?.map((row) => <div key={row._id} className="flex items-center justify-between rounded-xl bg-surface p-4"><div><p className="font-semibold text-text-primary">{row.name || "Deleted product"}</p><p className="text-xs text-text-secondary">{row.units} units</p></div><strong className="text-text-primary">Rs. {Number(row.revenue || 0).toLocaleString("en-IN")}</strong></div>)}</div></section></div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <section className={panelClassName}>
@@ -179,6 +192,7 @@ export const AdminDashboardPage = () => {
                             <button
                               type="button"
                               onClick={async () => {
+                                if (!window.confirm(`Archive ${product.name || product.title}?`)) return;
                                 await deleteProductById(product._id);
                                 loadDashboard();
                               }}
@@ -244,6 +258,7 @@ export const AdminDashboardPage = () => {
                       <button
                         type="button"
                         onClick={async () => {
+                          if (!window.confirm(`Delete category ${item.name}?`)) return;
                           await deleteCategory(item._id);
                           loadDashboard();
                         }}
@@ -276,6 +291,7 @@ export const AdminDashboardPage = () => {
                       <button
                         type="button"
                         onClick={async () => {
+                          if (!window.confirm(`Delete brand ${item.name}?`)) return;
                           await deleteBrand(item._id);
                           loadDashboard();
                         }}
@@ -434,6 +450,10 @@ export const AdminDashboardPage = () => {
               </tbody>
             </table>
           </div>
+        </section>
+        <section className={panelClassName}>
+          <div className="border-b border-border pb-5"><h2 className="text-2xl font-semibold text-text-primary">Homepage banners</h2><p className="mt-2 text-sm text-text-secondary">Manage only fields supported by the existing banner schema.</p></div>
+          <div className="mt-5 grid gap-6 xl:grid-cols-[.8fr_1.2fr]"><div className="grid gap-4"><Input label="Image URL" value={banner.image} onChange={(event) => setBanner((value) => ({ ...value, image: event.target.value }))} /><Input label="Title" value={banner.title} onChange={(event) => setBanner((value) => ({ ...value, title: event.target.value }))} /><Input label="Subtitle" value={banner.subtitle} onChange={(event) => setBanner((value) => ({ ...value, subtitle: event.target.value }))} /><Input label="CTA text" value={banner.ctaText} onChange={(event) => setBanner((value) => ({ ...value, ctaText: event.target.value }))} /><Input label="CTA route" value={banner.ctaLink} onChange={(event) => setBanner((value) => ({ ...value, ctaLink: event.target.value }))} /><Input type="number" label="Priority" value={banner.priority} onChange={(event) => setBanner((value) => ({ ...value, priority: Number(event.target.value) }))} /><label className="flex items-center gap-2 text-sm text-text-primary"><input type="checkbox" checked={banner.isActive} onChange={(event) => setBanner((value) => ({ ...value, isActive: event.target.checked }))} />Active</label><Button disabled={!banner.image || !banner.title} onClick={async () => { await createBanner(banner); setBanner({ image: "", title: "", subtitle: "", ctaText: "", ctaLink: "", priority: 0, isActive: true }); loadDashboard(); }}>Create banner</Button></div><div className="grid gap-3 sm:grid-cols-2">{banners.map((item) => <article key={item._id} className="overflow-hidden rounded-2xl border border-default bg-surface"><img src={item.image} alt="" className="aspect-[16/7] w-full object-cover" loading="lazy" /><div className="p-4"><h3 className="font-semibold text-text-primary">{item.title}</h3><p className="mt-1 text-sm text-text-secondary">{item.subtitle}</p><div className="mt-4 flex flex-wrap gap-2"><Button variant="secondary" onClick={async () => { await updateBanner(item._id, { isActive: !item.isActive }); loadDashboard(); }}>{item.isActive ? "Deactivate" : "Activate"}</Button><Button variant="ghost" onClick={async () => { if (!window.confirm(`Delete banner ${item.title}?`)) return; await deleteBanner(item._id); loadDashboard(); }}>Delete</Button></div></div></article>)}</div></div>
         </section>
       </div>
     </PageWrapper>

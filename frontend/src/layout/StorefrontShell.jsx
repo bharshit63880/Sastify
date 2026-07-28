@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AppErrorBoundary } from "../components/AppErrorBoundary";
@@ -15,12 +15,28 @@ import { AppShellProvider } from "../features/shell/AppShellContext";
 import { pageTransition, reducedMotionVariants } from "../components/ui/motion";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { DiscoveryProvider } from "../features/discovery/DiscoveryContext";
+import { useDispatch } from "react-redux";
+import { fetchAllBrandsAsync } from "../features/brands/BrandSlice";
+import { fetchAllCategoriesAsync } from "../features/categories/CategoriesSlice";
+import { fetchStorefrontOverviewAsync } from "../features/storefront/StorefrontSlice";
 
 const QuickViewModal = lazy(() => import("../features/discovery/QuickViewModal").then((module) => ({ default: module.QuickViewModal })));
 
 export const StorefrontShell = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
   const reduceMotion = useReducedMotion();
+  useEffect(() => {
+    const privateRoute = ["/account", "/checkout", "/orders", "/wishlist", "/order-success"].some((path) => location.pathname.startsWith(path));
+    let robots = document.head.querySelector('meta[name="robots"]');
+    if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.appendChild(robots); }
+    robots.content = privateRoute ? "noindex,nofollow" : "index,follow";
+  }, [location.pathname]);
+  useEffect(() => {
+    dispatch(fetchAllCategoriesAsync());
+    dispatch(fetchAllBrandsAsync());
+    dispatch(fetchStorefrontOverviewAsync());
+  }, [dispatch]);
   return (
     <AppShellProvider>
       <DiscoveryProvider>
@@ -31,7 +47,7 @@ export const StorefrontShell = () => {
         <Navbar />
         <main className="relative min-h-[70vh]" id="main-content">
           <AppErrorBoundary>
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="sync" initial={false}>
               <motion.div key={location.pathname} variants={reduceMotion ? reducedMotionVariants : pageTransition} initial="hidden" animate="visible" exit="exit">
                 <Suspense fallback={<RouteFallback />}>
                   <Outlet />
