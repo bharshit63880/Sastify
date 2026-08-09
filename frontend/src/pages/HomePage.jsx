@@ -70,7 +70,8 @@ const Hero = ({ banner, products }) => {
   const primaryLink = banner?.ctaLink || "/products";
 
   return (
-    <section ref={ref} className="relative min-h-[calc(100svh-6.5rem)] overflow-hidden" aria-labelledby="home-hero-title">
+    <div className="hero-dimensional-frame relative mx-2 mb-5 sm:mx-4 sm:mb-7 lg:mx-6">
+      <section ref={ref} className="hero-dimensional-panel relative min-h-[calc(100svh-6.5rem)] overflow-hidden" aria-labelledby="home-hero-title">
       <motion.div style={{ y: mediaY }} className="absolute inset-0 -top-[12%] h-[124%]">
         <HomeMedia banner={banner} fallback={FALLBACK_HERO} alt="" eager className="h-full w-full object-cover" />
       </motion.div>
@@ -106,7 +107,8 @@ const Hero = ({ banner, products }) => {
       <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-white/70" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
         Scroll <FiArrowDown />
       </motion.a>
-    </section>
+      </section>
+    </div>
   );
 };
 
