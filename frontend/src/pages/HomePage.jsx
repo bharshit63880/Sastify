@@ -188,14 +188,17 @@ const EditorialBanner = ({ banner, category }) => {
   const copy = banner?.subtitle || "A visual route into products already available across the storefront.";
   return (
     <section aria-labelledby="editorial-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
-      <motion.div initial={{ opacity: 0, scale: .985 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="relative min-h-[520px] overflow-hidden rounded-[38px] border border-glass shadow-lg">
-        <HomeMedia banner={banner || { image: category?.image }} fallback={FALLBACK_HERO} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,9,22,.9),rgba(7,10,24,.48),rgba(7,10,24,.12))]" />
-        <div className="relative flex min-h-[520px] max-w-3xl flex-col justify-end p-7 text-white sm:p-12 lg:p-16">
-          <p className="text-label text-white/60">The Sastify edit</p>
-          <h2 id="editorial-title" className="mt-4 text-[clamp(2.8rem,6vw,5.8rem)] font-bold leading-[.94] tracking-[-.065em]">{title}</h2>
-          <p className="mt-6 max-w-xl text-base leading-7 text-white/70 sm:text-lg">{copy}</p>
-          <Button to={banner?.ctaLink || "/products"} variant="glass" size="lg" className="mt-8 w-fit" rightIcon={<FiArrowRight />}>{banner?.ctaText || "Explore products"}</Button>
+      <motion.div initial={{ opacity: 0, scale: .985, y: 18 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true }} className="editorial-frame relative">
+        <div className="editorial-panel relative min-h-[520px] overflow-hidden">
+          <HomeMedia banner={banner || { image: category?.image }} fallback={FALLBACK_HERO} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,9,22,.92),rgba(7,10,24,.5),rgba(7,10,24,.14))]" />
+          <div className="editorial-shine absolute inset-0" aria-hidden="true" />
+          <div className="relative flex min-h-[520px] max-w-3xl flex-col justify-end p-7 text-white sm:p-12 lg:p-16">
+            <p className="text-label text-white/60">The Sastify edit</p>
+            <h2 id="editorial-title" className="mt-4 text-[clamp(2.8rem,6vw,5.8rem)] font-bold leading-[.94] tracking-[-.065em]">{title}</h2>
+            <p className="mt-6 max-w-xl text-base leading-7 text-white/70 sm:text-lg">{copy}</p>
+            <Button to={banner?.ctaLink || "/products"} variant="glass" size="lg" className="mt-8 w-fit" rightIcon={<FiArrowRight />}>{banner?.ctaText || "Explore products"}</Button>
+          </div>
         </div>
       </motion.div>
     </section>

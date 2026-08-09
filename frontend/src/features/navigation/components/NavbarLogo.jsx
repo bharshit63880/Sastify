@@ -6,9 +6,10 @@ export const NavbarLogo = ({ onClick }) => (
     to="/"
     onClick={onClick}
     aria-label="Sastify home"
-    className="group inline-flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/10 transition duration-normal hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+    className="group inline-flex shrink-0 items-center rounded-xl border border-default bg-surface-raised p-1 shadow-sm transition duration-normal hover:-translate-y-0.5 hover:border-strong hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
   >
-    <img src="/brand/sastify-app-icon.png" alt="" width="40" height="40" className="h-9 w-9 rounded-lg object-cover sm:hidden" aria-hidden="true" />
-    <img src="/brand/sastify-logo.png" alt="Sastify" width="260" height="84" className="hidden h-10 w-auto max-w-[150px] object-contain sm:block lg:max-w-[168px]" />
+    <img src="/logo192.png" alt="" width="40" height="40" className="h-9 w-9 rounded-lg object-cover sm:hidden" aria-hidden="true" />
+    <img src="/brand/sastify-logo-light.png" alt="Sastify" width="520" height="184" className="hidden h-10 w-auto max-w-[170px] object-contain dark:hidden sm:block lg:max-w-[188px]" />
+    <img src="/brand/sastify-logo-dark.png" alt="Sastify" width="520" height="199" className="hidden h-10 w-auto max-w-[170px] object-contain sm:dark:block lg:max-w-[188px]" />
   </Link>
 );
