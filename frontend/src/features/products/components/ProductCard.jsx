@@ -25,7 +25,7 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
   const [wishlistPulse, setWishlistPulse] = useState(0);
   const [cartBusy, setCartBusy] = useState(false);
   const isWishlisted = useSelector((state) => state.WishlistSlice.items.some((item) => String(item.product?._id || item.product) === String(product._id)));
-  const { primary, secondary } = getCardImages(product);
+  const { primary, secondary, fallback } = getCardImages(product);
   const label = product.name || product.title;
   const brand = product.brand?.name || product.brandName || "";
   const price = Number(product.price || 0);
@@ -72,7 +72,7 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
       <div ref={imageRef} className={`relative overflow-hidden bg-surface-muted ${isList ? "min-h-64" : ""}`}>
         <Link to={`/products/${product.slug || product._id}`} aria-label={`View ${label}`}>
           <div className={isList ? "h-full min-h-64" : "aspect-[4/4.7]"}>
-            <ImageWithFallback src={primary} alt={label} width={520} height={610} wrapperClassName="h-full w-full" className={`object-cover ${!secondary && !reduceMotion ? "transition-transform duration-500 group-hover:scale-105" : ""}`} />
+            <ImageWithFallback src={primary} fallback={fallback} alt={label} width={520} height={610} wrapperClassName="h-full w-full" className={`object-cover ${!secondary && !reduceMotion ? "transition-transform duration-500 group-hover:scale-105" : ""}`} />
             {secondary && intent ? <img src={secondary} alt="" loading="lazy" aria-hidden="true" className={`absolute inset-0 h-full w-full object-cover opacity-0 ${reduceMotion ? "" : "transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100"}`} /> : null}
           </div>
         </Link>

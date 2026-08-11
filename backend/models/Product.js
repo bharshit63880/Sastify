@@ -12,6 +12,16 @@ const specSchema = new Schema(
 
 const productSchema = new Schema(
     {
+        sku: { type: String, trim: true, sparse: true, index: true },
+        currency: { type: String, default: "INR", uppercase: true, trim: true },
+        tags: { type: [String], default: [] },
+        source: {
+            provider: { type: String, trim: true },
+            sourceId: { type: String, trim: true },
+            sourceUrl: { type: String, trim: true },
+            dataset: { type: String, trim: true },
+            importedAt: Date,
+        },
         name: {
             type: String,
             required: true,
@@ -177,6 +187,8 @@ const productSchema = new Schema(
     },
     { timestamps: true, versionKey: false }
 );
+
+productSchema.index({ "source.provider": 1, "source.sourceId": 1 }, { unique: true, sparse: true });
 
 productSchema.pre("validate", function syncProductFields(next) {
     if (!this.name && this.title) {

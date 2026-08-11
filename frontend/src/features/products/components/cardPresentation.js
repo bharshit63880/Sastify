@@ -4,5 +4,11 @@ export const getCardImages = (product) => {
   const primary = getProductVisualSource(product);
   const images = product?.images?.filter(Boolean) || [];
   const secondary = images.find((image) => image !== primary && image !== product?.thumbnail) || null;
-  return { primary, secondary };
+  const generatedFallback = getProductVisualSource({
+    ...product,
+    thumbnail: "",
+    images: [],
+  });
+  const fallback = secondary || generatedFallback;
+  return { primary, secondary, fallback };
 };

@@ -5,13 +5,14 @@ describe("ProductCard visual behavior", () => {
     expect(getCardImages({ thumbnail: "one.jpg", images: ["one.jpg", "two.jpg"] })).toEqual({
       primary: "one.jpg",
       secondary: "two.jpg",
+      fallback: "two.jpg",
     });
   });
 
   test("falls back to primary-image zoom when no alternate exists", () => {
-    expect(getCardImages({ thumbnail: "one.jpg", images: ["one.jpg"] })).toEqual({
-      primary: "one.jpg",
-      secondary: null,
-    });
+    const result = getCardImages({ name: "Running shoe", thumbnail: "one.jpg", images: ["one.jpg"] });
+    expect(result.primary).toBe("one.jpg");
+    expect(result.secondary).toBeNull();
+    expect(result.fallback).toContain("images.unsplash.com");
   });
 });

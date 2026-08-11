@@ -10,7 +10,11 @@ exports.connectToDB=async()=>{
         }
 
         if (!connectionPromise) {
-            connectionPromise = mongoose.connect(process.env.MONGO_URI)
+            const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+            if (!mongoUri) {
+                throw new Error("MONGODB_URI is required");
+            }
+            connectionPromise = mongoose.connect(mongoUri)
                 .then((connection) => {
                     console.log('connected to DB');
                     return connection;
