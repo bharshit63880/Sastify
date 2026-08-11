@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { FiCheck, FiHeart, FiMinus, FiPlus, FiShare2, FiShoppingBag, FiStar, FiTruck } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -191,10 +191,10 @@ export const ProductDetails = () => {
     <PageWrapper className="pb-28 pt-5 md:pb-10">
       <Seo product={product} />
       <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap gap-2 text-sm text-text-secondary"><Link to="/">Home</Link><span>/</span><Link to={`/category/${product.category?.slug || ""}`}>{product.category?.name || "Products"}</Link><span>/</span><span aria-current="page" className="text-text-primary">{name}</span></nav>
-      <motion.div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]" initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]">
         <section aria-label="Product media" className="rounded-2xl border border-default bg-surface p-3 shadow-sm sm:p-5"><ProductGallery media={media} name={name} /></section>
         <aside className="lg:sticky lg:top-28 lg:self-start"><div className="rounded-2xl border border-default bg-surface-glass p-5 shadow-md backdrop-blur-xl sm:p-7">{purchasePanel}</div></aside>
-      </motion.div>
+      </div>
       <section className="mt-10 rounded-2xl border border-default bg-surface p-6 sm:p-8"><h2 className="text-3xl font-semibold tracking-tight text-text-primary">Product details</h2>{product.description ? <p className="mt-5 max-w-4xl whitespace-pre-line text-base leading-8 text-text-secondary">{product.description}</p> : null}{infoGroups.length ? <div className="mt-8 grid gap-4 md:grid-cols-2">{infoGroups.map((group) => <div key={group.title} className="rounded-xl bg-surface-muted p-5"><h3 className="font-semibold text-text-primary">{group.title}</h3>{group.text ? <p className="mt-2 text-sm leading-6 text-text-secondary">{group.text}</p> : <ul className="mt-3 space-y-2">{group.items.map((item) => <li key={item} className="flex gap-2 text-sm text-text-secondary"><FiCheck className="mt-1 shrink-0 text-success" />{item}</li>)}</ul>}</div>)}</div> : null}<dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-default pt-5 text-sm">{product._id ? <div><dt className="text-text-secondary">SKU</dt><dd className="font-medium text-text-primary">{product.sku || product._id}</dd></div> : null}{product.category?.name ? <div><dt className="text-text-secondary">Category</dt><dd className="font-medium text-text-primary">{product.category.name}</dd></div> : null}</dl></section>
       <section id="reviews" className="scroll-mt-28 mt-10 rounded-2xl border border-default bg-surface p-6 sm:p-8"><h2 className="mb-8 text-3xl font-semibold tracking-tight text-text-primary">Customer reviews</h2><ReviewExperience reviews={reviews} status={reviewStatus} error={reviewError} averageRating={product.rating || product.ratingAverage} /></section>
       {product.relatedProducts?.length ? <section className="mt-12"><ProductShelf id="similar-products" eyebrow="Discover more" title="Similar products" products={product.relatedProducts} /></section> : null}
