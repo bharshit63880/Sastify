@@ -21,7 +21,7 @@ import { HomeMedia } from "../features/home/components/HomeMedia";
 import { buildCategoryTree, getCategoryHref } from "../utils/categoryTree";
 import { formatPrice } from "../utils/currencyFormatter";
 
-const FALLBACK_HERO = "/hero-editorial.jpg";
+const FALLBACK_HERO = "/hero-ivory-products.png";
 const HOME_REQUEST_TIMEOUT_MS = 8000;
 const emptyHome = {
   banners: [],
@@ -49,8 +49,8 @@ const Hero = ({ banner, products }) => {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const mediaY = useTransform(scrollYProgress, [0, 1], ["0%", reduceMotion ? "0%" : "12%"]);
-  const title = "Things you didn't know you wanted. Until now.";
-  const subtitle = "From everyday upgrades to unexpected finds — discover something worth adding to your world.";
+  const title = "Finds that feel made for you.";
+  const subtitle = "Thoughtful upgrades, unexpected favourites, and everyday pieces worth keeping.";
   const primaryText = "Discover what's new";
   const primaryLink = banner?.ctaLink || "/products";
 
@@ -58,38 +58,37 @@ const Hero = ({ banner, products }) => {
     <div className="hero-dimensional-frame relative mx-3 mb-8 mt-4 sm:mx-5 lg:mx-8">
       <section ref={ref} className="hero-dimensional-panel relative min-h-[calc(100svh-8rem)] overflow-hidden" aria-labelledby="home-hero-title">
       <motion.div style={{ y: mediaY }} className="absolute inset-0 -top-[12%] h-[124%]">
-        <HomeMedia banner={banner} fallback={FALLBACK_HERO} alt="" eager className="h-full w-full object-cover" />
+        <HomeMedia banner={{ image: FALLBACK_HERO }} fallback={FALLBACK_HERO} alt="" eager className="h-full w-full object-cover" />
       </motion.div>
-      <div className="absolute inset-0 bg-[linear-gradient(105deg,rgba(3,7,20,.78)_0%,rgba(12,18,42,.48)_54%,rgba(8,14,35,.18)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(130,108,255,.34),transparent_34%),radial-gradient(circle_at_18%_88%,rgba(64,205,229,.2),transparent_28%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,253,249,.96)_0%,rgba(255,252,246,.72)_39%,rgba(255,252,246,.08)_63%,transparent_100%)]" />
       <div className="relative mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-[1440px] items-center px-4 py-16 sm:px-7 lg:px-10">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1fr_.72fr]">
-          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="hero-copy-glass max-w-4xl rounded-[34px] p-6 sm:p-9 lg:p-11">
-            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-white/70">Curated for the curious</motion.p>
-            <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-4xl text-[clamp(3.2rem,8vw,7.8rem)] font-extrabold leading-[.88] tracking-[-.075em] text-white">
+          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="max-w-3xl py-6 sm:py-9 lg:py-11">
+            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-[#b38a3d]">Curated for the curious</motion.p>
+            <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-3xl text-[clamp(3.1rem,6.8vw,7rem)] font-extrabold leading-[.9] tracking-[-.07em] text-[#171b22]">
               {title}
             </motion.h1>
-            <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-xl sm:leading-8">{subtitle}</motion.p>
+            <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-xl text-base leading-7 text-[#646a76] sm:text-xl sm:leading-8">{subtitle}</motion.p>
             <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }} className="mt-9 flex flex-wrap gap-3">
-              <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />}>{primaryText}</Button>
-              <Button to="#featured-categories" variant="glass" size="lg">Explore categories</Button>
+              <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />} className="hero-primary-cta">{primaryText}</Button>
+              <Button to="#featured-categories" variant="glass" size="lg" className="hero-secondary-cta">Explore categories</Button>
             </motion.div>
           </motion.div>
 
           <div className="hidden items-end justify-end gap-4 lg:flex" aria-label="Featured products">
             {products.slice(0, 2).map((product, index) => (
               <motion.div key={product._id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .35 + index * .1 }} className={index ? "mb-14" : ""}>
-                <Link to={`/products/${product.slug || product._id}`} className="glass-panel group block w-52 overflow-hidden rounded-[28px] p-3 text-white">
+                <Link to={`/products/${product.slug || product._id}`} className="hero-product-float group block w-52 overflow-hidden rounded-[28px] p-3 text-[#252932]">
                   <img src={product.thumbnail || product.images?.[0]} alt="" loading="lazy" width="208" height="240" className="aspect-[4/4.6] w-full rounded-[20px] object-cover transition duration-500 group-hover:scale-[1.03]" />
                   <p className="mt-3 line-clamp-1 text-sm font-semibold">{product.name || product.title}</p>
-                  <p className="mt-1 text-xs text-white/70">{formatPrice(product.price)}</p>
+                  <p className="mt-1 text-xs text-[#737985]">{formatPrice(product.price)}</p>
                 </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
-      <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-white/70" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
+      <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-[#757a84]" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
         Scroll <FiArrowDown />
       </motion.a>
       </section>

@@ -6,7 +6,6 @@ import { selectCategories } from "../features/categories/CategoriesSlice";
 import {
   buildCategoryTree,
   getCategoryAncestors,
-  getCategoryDescendants,
   getCategoryHref,
   getCategoryNode,
   getLeafCategories,
@@ -19,129 +18,32 @@ const emptyArray = [];
 export const CategoryPage = () => {
   const { slug, parent, child, grandchild } = useParams();
   const categories = useSelector(selectCategories);
-
   const { roots, nodesById } = useMemo(() => buildCategoryTree(categories), [categories]);
-
-  const category = useMemo(
-    () => resolveCategoryFromSegments(categories, [slug, parent, child, grandchild]),
-    [categories, slug, parent, child, grandchild]
-  );
-
+  const category = useMemo(() => resolveCategoryFromSegments(categories, [slug, parent, child, grandchild]), [categories, slug, parent, child, grandchild]);
   const categoryNode = useMemo(() => getCategoryNode(category, nodesById), [category, nodesById]);
-
-  const leafScope = useMemo(() => {
-    if (!categoryNode) return emptyArray;
-    return getLeafCategories(categoryNode, nodesById);
-  }, [categoryNode, nodesById]);
-
-  const baseFilters = useMemo(
-    () => ({ category: leafScope.map((item) => item._id) }),
-    [leafScope]
-  );
-
-  const ancestry = useMemo(() => {
-    if (!categoryNode) return emptyArray;
-    return [...getCategoryAncestors(categoryNode, nodesById), categoryNode];
-  }, [categoryNode, nodesById]);
+  const leafScope = useMemo(() => categoryNode ? getLeafCategories(categoryNode, nodesById) : emptyArray, [categoryNode, nodesById]);
+  const baseFilters = useMemo(() => ({ category: leafScope.map((item) => item._id) }), [leafScope]);
+  const ancestry = useMemo(() => categoryNode ? [...getCategoryAncestors(categoryNode, nodesById), categoryNode] : emptyArray, [categoryNode, nodesById]);
 
   const relatedCategories = useMemo(() => {
-    if (!categoryNode) return roots.slice(0, 4);
-
-    if (categoryNode.children.length) {
-      return categoryNode.children;
-    }
-
+    if (!categoryNode) return roots.slice(0, 8);
+    if (categoryNode.children.length) return categoryNode.children;
     const parentNode = categoryNode.parentId ? nodesById.get(String(categoryNode.parentId)) : null;
-
-    if (parentNode?.children.length) {
-      return parentNode.children.filter((item) => String(item._id) !== String(categoryNode._id));
-    }
-
+    if (parentNode?.children.length) return parentNode.children.filter((item) => String(item._id) !== String(categoryNode._id));
     const rootNode = getRootCategory(categoryNode, nodesById);
-    return roots.filter((item) => String(item._id) !== String(rootNode?._id)).slice(0, 4);
+    return roots.filter((item) => String(item._id) !== String(rootNode?._id)).slice(0, 8);
   }, [categoryNode, nodesById, roots]);
 
-  const headerContent = useMemo(() => {
-    const relatedLabel = categoryNode?.children.length ? "Subcategories" : "Keep browsing";
-
-    return (
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(280px,0.78fr)]">
-        <div className="rounded-[28px] border border-border bg-surface p-5 shadow-card">
-          <div className="flex flex-wrap items-center gap-2">
-            {ancestry.length ? (
-              ancestry.map((item, index) => (
-                <React.Fragment key={item._id}>
-                  <Link
-                    to={getCategoryHref(item)}
-                    className={[
-                      "inline-flex rounded-full border px-4 py-2 text-sm transition",
-                      index === ancestry.length - 1
-                        ? "border-primary bg-primary text-white"
-                        : "border-border bg-surface text-textSecondary hover:bg-surface-raised hover:text-textPrimary",
-                    ].join(" ")}
-                  >
-                    {item.name}
-                  </Link>
-                  {index < ancestry.length - 1 ? (
-                    <span className="text-sm text-textSecondary">/</span>
-                  ) : null}
-                </React.Fragment>
-              ))
-            ) : (
-              roots.slice(0, 4).map((item) => (
-                <Link
-                  key={item._id}
-                  to={getCategoryHref(item)}
-                  className="inline-flex rounded-full border border-border bg-surface px-4 py-2 text-sm text-textSecondary transition hover:bg-surface-raised hover:text-textPrimary"
-                >
-                  {item.name}
-                </Link>
-              ))
-            )}
-          </div>
-          {categoryNode?.description ? <p className="mt-4 max-w-2xl text-sm leading-6 text-textSecondary">{categoryNode.description}</p> : null}
-        </div>
-
-        {relatedCategories.length ? (
-          <div className="rounded-[28px] border border-border bg-surface p-5">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-textSecondary">{relatedLabel}</p>
-                <p className="mt-2 text-lg font-semibold tracking-tight text-textPrimary">
-                  {categoryNode?.children.length ? "Explore the next layer" : "Nearby categories"}
-                </p>
-              </div>
-              <span className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-textPrimary">
-                {relatedCategories.length}
-              </span>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {relatedCategories.slice(0, 4).map((item) => {
-                const previewItems = item.children.length ? getCategoryDescendants(item, nodesById) : [item];
-                const leafPreview = previewItems.filter((entry) => !entry.children.length).slice(0, 2);
-
-                return (
-                  <Link
-                    key={item._id}
-                    to={getCategoryHref(item)}
-                    className="rounded-[24px] border border-border bg-surface px-4 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-card"
-                  >
-                    <p className="text-base font-semibold tracking-tight text-textPrimary">{item.name}</p>
-                    <p className="mt-2 text-sm leading-6 text-textSecondary">
-                      {leafPreview.length
-                        ? leafPreview.map((entry) => entry.name).join(" • ")
-                        : "Browse the full department"}
-                    </p>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-      </div>
-    );
-  }, [ancestry, categoryNode, nodesById, relatedCategories, roots]);
+  const headerContent = useMemo(() => (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="inline-flex rounded-full bg-[#202124] px-5 py-2.5 text-sm font-semibold text-white">All</span>
+      {relatedCategories.slice(0, 8).map((item) => (
+        <Link key={item._id} to={getCategoryHref(item)} className="inline-flex rounded-full border border-default bg-transparent px-5 py-2.5 text-sm font-medium text-text-primary transition hover:border-[#b38a3d] hover:text-[#9a742f]">
+          {item.name}
+        </Link>
+      ))}
+    </div>
+  ), [relatedCategories]);
 
   return (
     <ProductList
@@ -152,10 +54,7 @@ export const CategoryPage = () => {
       breadcrumbs={[
         { label: "Home", to: "/" },
         { label: "Products", to: "/products" },
-        ...ancestry.map((item, index) => ({
-          label: item.name,
-          to: index < ancestry.length - 1 ? getCategoryHref(item) : undefined,
-        })),
+        ...ancestry.map((item, index) => ({ label: item.name, to: index < ancestry.length - 1 ? getCategoryHref(item) : undefined })),
       ]}
     />
   );

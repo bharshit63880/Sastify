@@ -66,7 +66,7 @@ const FilterPanel = ({ filters, apply, categories, brands, colors, sizes, locked
         <div><p className="text-label text-brand-primary">Refine</p><h2 className="mt-1 text-xl font-semibold text-text-primary">Filters</h2></div>
         {onClose ? <IconButton label="Close filters" onClick={onClose}><FiX /></IconButton> : <FiSliders className="text-text-secondary" />}
       </div>
-      {lockedCategoryIds.length ? <p className="rounded-xl border border-default bg-surface-muted p-3 text-sm leading-6 text-text-secondary">This category page keeps its current category scope.</p> : <CheckList legend="Category" items={categories} selected={categorySelection} onToggle={(value) => apply({ category: toggleArrayValue(filters.category, value) })} />}
+      {lockedCategoryIds.length ? null : <CheckList legend="Category" items={categories} selected={categorySelection} onToggle={(value) => apply({ category: toggleArrayValue(filters.category, value) })} />}
       <CheckList legend="Brand" items={brands} selected={filters.brand} onToggle={(value) => apply({ brand: toggleArrayValue(filters.brand, value) })} />
       <div className="grid grid-cols-2 gap-3">
         <label className="text-sm text-text-secondary">Minimum price<input type="number" min="0" value={filters.minPrice || ""} onChange={(event) => apply({ minPrice: Number(event.target.value) || "" })} className="input-base mt-2" /></label>
@@ -77,7 +77,7 @@ const FilterPanel = ({ filters, apply, categories, brands, colors, sizes, locked
       <CheckList legend="Color" items={colors.map((value) => ({ value }))} selected={filters.color} onToggle={(value) => apply({ color: toggleArrayValue(filters.color, value) })} getLabel={(item) => item.value} />
       <CheckList legend="Size" items={sizes.map((value) => ({ value }))} selected={filters.size} onToggle={(value) => apply({ size: toggleArrayValue(filters.size, value) })} getLabel={(item) => item.value} />
       {[["inStock", "In stock only"], ["trending", "Trending only"], ["bestseller", "Best sellers only"]].map(([key, label]) => (
-        <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-default bg-surface-raised px-3 text-sm font-medium text-text-primary">
+        <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 px-1 text-sm font-medium text-text-primary">
           <input type="checkbox" checked={filters[key]} onChange={(event) => apply({ [key]: event.target.checked })} className="h-4 w-4 accent-brand-primary" />{label}
         </label>
       ))}
@@ -168,18 +168,18 @@ export const ProductList = ({
       <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
         {breadcrumbs.map((item, index) => <React.Fragment key={`${item.label}-${index}`}>{index ? <FiChevronRight aria-hidden="true" /> : null}{item.to ? <Link to={item.to} className="hover:text-text-primary">{item.label}</Link> : <span aria-current="page" className="text-text-primary">{item.label}</span>}</React.Fragment>)}
       </nav>
-      <header className="rounded-[34px] border border-default bg-surface p-6 shadow-md sm:p-8">
+      <header className="border-b border-default pb-7 pt-3 sm:pb-9">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl"><p className="text-label text-brand-primary">Shop all categories</p><h1 className="mt-3 text-page-title text-text-primary">{title}</h1>{description ? <p className="mt-4 body-copy">{description}</p> : null}</div>
-          <div className="flex flex-wrap items-center gap-3"><span className="rounded-pill border border-default bg-surface-muted px-4 py-2 text-sm font-semibold text-text-primary" aria-live="polite">{status === "pending" ? "Updatingâ€¦" : `${totalResults} results`}</span><Button variant="secondary" icon={<FiFilter />} className="xl:hidden" onClick={() => setMobileFiltersOpen(true)}>Filters{chips.length ? ` (${chips.length})` : ""}</Button></div>
+          <div className="flex flex-wrap items-center gap-3"><span className="rounded-pill border border-default bg-surface-muted px-4 py-2 text-sm font-semibold text-text-primary" aria-live="polite">{status === "pending" ? "Updating…" : `${totalResults} results`}</span><Button variant="secondary" icon={<FiFilter />} className="xl:hidden" onClick={() => setMobileFiltersOpen(true)}>Filters{chips.length ? ` (${chips.length})` : ""}</Button></div>
         </div>
-        {headerContent ? <div className="mt-7 border-t border-default pt-7">{headerContent}</div> : null}
+        {headerContent ? <div className="mt-7">{headerContent}</div> : null}
       </header>
 
       <div className="mt-7 grid gap-7 xl:grid-cols-[292px_minmax(0,1fr)]">
-        <aside className="hidden xl:block"><div className="sticky top-28 rounded-[28px] border border-default bg-surface p-5 shadow-sm"><FilterPanel filters={filters} apply={apply} categories={categories} brands={allBrands} colors={colors} sizes={sizes} lockedCategoryIds={lockedCategoryIds} /></div></aside>
+        <aside className="hidden xl:block"><div className="sticky top-28 border-r border-default pr-6"><FilterPanel filters={filters} apply={apply} categories={categories} brands={allBrands} colors={colors} sizes={sizes} lockedCategoryIds={lockedCategoryIds} /></div></aside>
         <section className="min-w-0" aria-label="Product results">
-          <div className="mb-6 rounded-[26px] border border-default bg-surface p-4 shadow-xs">
+          <div className="mb-6 border-b border-default pb-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                 {chips.length ? chips.map((chip) => <button key={`${chip.key}-${chip.value || chip.label}`} type="button" onClick={() => removeChip(chip)} className="inline-flex items-center gap-2 rounded-pill border border-default bg-surface-muted px-3 py-2 text-sm text-text-primary hover:border-strong">{chip.label}<FiX aria-hidden="true" /></button>) : <span className="py-2 text-sm text-text-secondary">No filters applied</span>}
