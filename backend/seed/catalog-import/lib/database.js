@@ -26,4 +26,12 @@ const upsertCatalog = async (items) => {
   return Product.bulkWrite(operations, { ordered: false });
 };
 
-module.exports = { currentCounts, backupImportedProducts, upsertCatalog };
+const removeLegacyProducts = () => Product.deleteMany({
+  $or: [
+    { "source.provider": { $exists: false } },
+    { "source.provider": null },
+    { "source.provider": "" },
+  ],
+});
+
+module.exports = { currentCounts, backupImportedProducts, upsertCatalog, removeLegacyProducts };

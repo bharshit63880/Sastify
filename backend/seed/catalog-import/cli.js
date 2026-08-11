@@ -7,7 +7,7 @@ const { writeReports } = require("./lib/report");
 
 const baseDir = __dirname;
 const sourceDir = path.resolve(process.env.SEED_SOURCE_DIR || path.join(baseDir, "source"));
-const limit = Math.min(250, Math.max(150, Number(process.env.SEED_LIMIT || 200)));
+const limit = Math.min(750, Math.max(150, Number(process.env.SEED_LIMIT || 200)));
 const dryRun = String(process.env.SEED_DRY_RUN ?? "true").toLowerCase() !== "false";
 const files = { amazon: "amazon-products.csv", walmart: "walmart-products.csv", shein: "shein-products.csv" };
 
@@ -21,13 +21,14 @@ const run = async () => {
   if (process.env.SEED_MODE !== "upsert") throw new Error("Only SEED_MODE=upsert is supported");
   const mongoose = require("mongoose");
   const { connectToDB } = require("../../database/db");
-  const { currentCounts, backupImportedProducts, upsertCatalog } = require("./lib/database");
+  const { currentCounts, backupImportedProducts, upsertCatalog, removeLegacyProducts } = require("./lib/database");
   await connectToDB();
   const before = await currentCounts();
   const backup = await backupImportedProducts(baseDir);
   const write = await upsertCatalog(result.selected);
+  const removedLegacy = process.env.SEED_REPLACE_LEGACY === "true" ? await removeLegacyProducts() : { deletedCount: 0 };
   const after = await currentCounts();
-  console.log(JSON.stringify({ before, backup, matched: write.matchedCount, modified: write.modifiedCount, upserted: write.upsertedCount, after }, null, 2));
+  console.log(JSON.stringify({ before, backup, matched: write.matchedCount, modified: write.modifiedCount, upserted: write.upsertedCount, removedLegacy: removedLegacy.deletedCount, after }, null, 2));
   await mongoose.connection.close();
 };
 run().catch((error) => { console.error(error.message); process.exitCode = 1; });
