@@ -169,28 +169,6 @@ const FlashSale = ({ products }) => {
   );
 };
 
-const EditorialBanner = ({ banner, category }) => {
-  const title = banner?.title || "A considered mix for everyday life";
-  const copy = banner?.subtitle || "Useful upgrades, thoughtful details, and a few finds you may not have searched for.";
-  return (
-    <section aria-labelledby="editorial-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
-      <motion.div initial={{ opacity: 0, scale: .985, y: 18 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true }} className="editorial-frame relative">
-        <div className="editorial-panel relative min-h-[520px] overflow-hidden">
-          <HomeMedia banner={banner || { image: category?.image }} fallback={FALLBACK_HERO} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,9,22,.92),rgba(7,10,24,.5),rgba(7,10,24,.14))]" />
-          <div className="editorial-shine absolute inset-0" aria-hidden="true" />
-          <div className="relative flex min-h-[520px] max-w-3xl flex-col justify-end p-7 text-white sm:p-12 lg:p-16">
-            <p className="text-label text-white/60">The Sastify edit</p>
-            <h2 id="editorial-title" className="mt-4 text-[clamp(2.8rem,6vw,5.8rem)] font-bold leading-[.94] tracking-[-.065em]">{title}</h2>
-            <p className="mt-6 max-w-xl text-base leading-7 text-white/70 sm:text-lg">{copy}</p>
-            <Button to={banner?.ctaLink || "/products"} variant="glass" size="lg" className="mt-8 w-fit" rightIcon={<FiArrowRight />}>{banner?.ctaText || "Explore products"}</Button>
-          </div>
-        </div>
-      </motion.div>
-    </section>
-  );
-};
-
 const Brands = ({ brands }) => {
   if (!brands.length) return null;
   return (
@@ -303,7 +281,6 @@ export const HomePage = () => {
       <FlashSale products={homeData.sections.dealsOfDay} />
       <ProductShelf id="best-sellers" eyebrow="Popular choices" title="Best sellers" description="Reliable favourites chosen across the Sastify community." products={homeData.sections.bestSellers} loading={loading} />
       <ProductShelf id="new-arrivals" eyebrow="Just added" title="New arrivals" description="Fresh additions across fashion, technology, home, and personal care." products={homeData.sections.newArrivals} loading={loading} />
-      <EditorialBanner banner={homeData.banners[1]} category={categories[0]} />
       <Brands brands={homeData.brands} />
       <RecentlyViewed />
       <TrustSection />
