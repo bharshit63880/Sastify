@@ -66,8 +66,9 @@ const wishlistSlice=createSlice({
             })
             .addCase(fetchWishlistByUserIdAsync.fulfilled,(state,action)=>{
                 state.wishlistFetchStatus='fulfilled'
-                state.items=action.payload.data
+                state.items=Array.isArray(action.payload.data) ? action.payload.data.filter((item)=>item?.product?._id) : []
                 state.totalResults=action.payload.totalResults
+                state.errors=null
             })
             .addCase(fetchWishlistByUserIdAsync.rejected,(state,action)=>{
                 state.wishlistFetchStatus='rejected'
@@ -92,7 +93,7 @@ const wishlistSlice=createSlice({
             })
             .addCase(deleteWishlistItemByIdAsync.fulfilled,(state,action)=>{
                 state.wishlistItemDeleteStatus='fulfilled'
-                state.items=state.items.filter((item)=>item._id!==action.payload._id)
+                state.items=state.items.filter((item)=>item._id!==(action.payload?._id || action.meta.arg))
             })
             .addCase(deleteWishlistItemByIdAsync.rejected,(state,action)=>{
                 state.wishlistItemDeleteStatus='rejected'

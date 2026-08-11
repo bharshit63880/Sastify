@@ -1,4 +1,5 @@
 const Wishlist = require("../models/Wishlist");
+const Product = require("../models/Product");
 
 const populateWishlist = (query) =>
     query.populate({
@@ -8,6 +9,8 @@ const populateWishlist = (query) =>
 
 exports.create = async (req, res) => {
     try {
+        const productExists = await Product.exists({ _id: req.body.product, isDeleted: false, status: "active" });
+        if (!productExists) return res.status(404).json({ message: "This product is no longer available" });
         const existing = await Wishlist.findOne({ user: req.user._id, product: req.body.product });
 
         if (existing) {
@@ -37,10 +40,13 @@ exports.getByUserId = async (req, res) => {
         const result = await populateWishlist(
             Wishlist.find({ user: req.user._id }).skip(skip).limit(limit)
         );
+        const staleIds = result.filter((item) => !item.product).map((item) => item._id);
+        if (staleIds.length) await Wishlist.deleteMany({ _id: { $in: staleIds }, user: req.user._id });
+        const available = result.filter((item) => item.product && !item.product.isDeleted && item.product.status === "active");
         const totalResults = await Wishlist.countDocuments({ user: req.user._id });
 
         res.set("X-Total-Count", totalResults);
-        res.status(200).json(result);
+        res.status(200).json(available);
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Error fetching your wishlist, please try again later" });
