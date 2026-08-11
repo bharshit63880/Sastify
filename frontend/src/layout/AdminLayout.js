@@ -60,7 +60,7 @@ export const AdminLayout = () => {
           Admin Console
         </span>
         <div>
-          {!collapsed ? <><h1 className="text-2xl font-semibold text-white">Sastify Admin</h1><p className="mt-2 text-sm leading-6 text-[#98a3bf]">Catalog, orders, users, and promotions in one place.</p></> : null}
+          {!collapsed ? <><h1 className="text-2xl font-semibold text-white">Sastify Admin</h1><p className="mt-2 text-sm leading-6 text-[#98a3bf]">Products, categories, orders, customers, and promotions in one place.</p></> : null}
         </div>
       </div>
 

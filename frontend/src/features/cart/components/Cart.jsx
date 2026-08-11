@@ -77,7 +77,7 @@ export const Cart = ({ checkoutMode = false, hideActions = false }) => {
     return (
       <EmptyState
         title="Your cart is empty"
-        description="Add products from the catalog to start building your order."
+        description="Browse categories and add products when you’re ready."
         actionLabel="Shop now"
         actionTo="/products"
       />

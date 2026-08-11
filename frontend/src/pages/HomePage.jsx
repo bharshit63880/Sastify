@@ -44,21 +44,6 @@ const getShowcaseCategories = (roots = []) => {
   return pool.filter((category, index, all) => all.findIndex((item) => String(item._id) === String(category._id)) === index).slice(0, 6);
 };
 
-const AnnouncementBar = ({ productCount, categoryCount }) => (
-  <div className="relative overflow-hidden border-y border-glass bg-brand-gradient text-white" aria-label="Store announcement">
-    <motion.div
-      className="flex min-h-10 items-center justify-center gap-3 px-4 py-2 text-center text-xs font-semibold tracking-wide sm:text-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-surface shadow-[0_0_14px_white]" aria-hidden="true" />
-      {productCount ? `${productCount} active products` : "The current Sastify catalogue"}
-      {categoryCount ? ` across ${categoryCount} categories` : " ready to explore"}
-      <Link to="/products" className="inline-flex items-center gap-1 underline decoration-white/50 underline-offset-4">Browse now <FiArrowRight /></Link>
-    </motion.div>
-  </div>
-);
-
 const Hero = ({ banner, products }) => {
   const ref = useRef(null);
   const reduceMotion = useReducedMotion();
@@ -70,16 +55,16 @@ const Hero = ({ banner, products }) => {
   const primaryLink = banner?.ctaLink || "/products";
 
   return (
-    <div className="hero-dimensional-frame relative mx-2 mb-5 sm:mx-4 sm:mb-7 lg:mx-6">
-      <section ref={ref} className="hero-dimensional-panel relative min-h-[calc(100svh-6.5rem)] overflow-hidden" aria-labelledby="home-hero-title">
+    <div className="hero-dimensional-frame relative mx-3 mb-8 mt-4 sm:mx-5 lg:mx-8">
+      <section ref={ref} className="hero-dimensional-panel relative min-h-[calc(100svh-8rem)] overflow-hidden" aria-labelledby="home-hero-title">
       <motion.div style={{ y: mediaY }} className="absolute inset-0 -top-[12%] h-[124%]">
         <HomeMedia banner={banner} fallback={FALLBACK_HERO} alt="" eager className="h-full w-full object-cover" />
       </motion.div>
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,8,22,.9)_0%,rgba(7,11,28,.7)_48%,rgba(8,12,30,.24)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_24%,rgba(111,78,255,.3),transparent_32%),radial-gradient(circle_at_28%_80%,rgba(38,198,229,.18),transparent_30%)]" />
-      <div className="relative mx-auto flex min-h-[calc(100svh-6.5rem)] w-full max-w-[1440px] items-center px-4 py-20 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-[linear-gradient(105deg,rgba(3,7,20,.78)_0%,rgba(12,18,42,.48)_54%,rgba(8,14,35,.18)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(130,108,255,.34),transparent_34%),radial-gradient(circle_at_18%_88%,rgba(64,205,229,.2),transparent_28%)]" />
+      <div className="relative mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-[1440px] items-center px-4 py-16 sm:px-7 lg:px-10">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1fr_.72fr]">
-          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="max-w-4xl">
+          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="hero-copy-glass max-w-4xl rounded-[34px] p-6 sm:p-9 lg:p-11">
             <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-white/70">Curated for the curious</motion.p>
             <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-4xl text-[clamp(3.2rem,8vw,7.8rem)] font-extrabold leading-[.88] tracking-[-.075em] text-white">
               {title}
@@ -119,7 +104,7 @@ const CategoryBento = ({ categories, counts, loading }) => {
       <div className="mb-8 max-w-2xl">
         <p className="text-label text-text-accent">Shop by perspective</p>
         <h2 id="category-bento-title" className="mt-3 text-section-title text-text-primary">Categories, composed differently</h2>
-        <p className="mt-3 body-copy">Move through the active catalogue by category.</p>
+        <p className="mt-3 body-copy">Start with what you need, then narrow it down to the right fit.</p>
       </div>
       {loading ? (
         <SkeletonRegion label="Loading categories"><div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-64 rounded-[28px]" />)}</div></SkeletonRegion>
@@ -162,8 +147,8 @@ const FlashSale = ({ products }) => {
         <div className="relative grid gap-9 lg:grid-cols-[.65fr_1.35fr] lg:items-center">
           <div>
             <p className="text-label text-white/60">Current offers</p>
-            <h2 id="current-offers-title" className="mt-4 text-4xl font-bold tracking-[-.05em] sm:text-5xl">Deals from the live catalogue</h2>
-            <p className="mt-5 text-base leading-7 text-white/70">No artificial countdown—just products currently marked as deals.</p>
+            <h2 id="current-offers-title" className="mt-4 text-4xl font-bold tracking-[-.05em] sm:text-5xl">Good prices, while they last</h2>
+            <p className="mt-5 text-base leading-7 text-white/70">Straightforward savings on products worth a closer look.</p>
             <Button to="/products" variant="gradient" className="mt-7" rightIcon={<FiArrowRight />}>View all products</Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -186,8 +171,8 @@ const FlashSale = ({ products }) => {
 };
 
 const EditorialBanner = ({ banner, category }) => {
-  const title = banner?.title || "Discover the current Sastify edit";
-  const copy = banner?.subtitle || "A visual route into products already available across the storefront.";
+  const title = banner?.title || "A considered mix for everyday life";
+  const copy = banner?.subtitle || "Useful upgrades, thoughtful details, and a few finds you may not have searched for.";
   return (
     <section aria-labelledby="editorial-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
       <motion.div initial={{ opacity: 0, scale: .985, y: 18 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true }} className="editorial-frame relative">
@@ -212,7 +197,7 @@ const Brands = ({ brands }) => {
   return (
     <section aria-labelledby="brands-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
       <div className="text-center">
-        <p className="text-label text-text-accent">Brands in the catalogue</p>
+        <p className="text-label text-text-accent">Brands to know</p>
         <h2 id="brands-title" className="mt-3 text-section-title text-text-primary">Featured brands</h2>
       </div>
       <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -228,10 +213,10 @@ const Brands = ({ brands }) => {
 
 const TrustSection = () => {
   const items = [
-    { icon: FiShield, title: "Secure checkout", copy: "Payment details are handled through the existing checkout flow." },
-    { icon: FiPackage, title: "Clear delivery details", copy: "Available delivery information is shown before purchase." },
-    { icon: FiCreditCard, title: "Transparent pricing", copy: "Current prices and discounts come directly from the catalogue." },
-    { icon: FiHeadphones, title: "Account support", copy: "Order and account information remains accessible after sign-in." },
+    { icon: FiShield, title: "Secure checkout", copy: "Protected payments and clear order confirmation at every step." },
+    { icon: FiPackage, title: "Delivery you can plan for", copy: "See availability and delivery details before you place an order." },
+    { icon: FiCreditCard, title: "No-surprise pricing", copy: "The price you review is the price carried into checkout." },
+    { icon: FiHeadphones, title: "Help when you need it", copy: "Your orders, addresses, and account details stay easy to find." },
   ];
   return (
     <section aria-labelledby="trust-title" className="mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
@@ -257,10 +242,10 @@ const Newsletter = () => {
         <div className="rounded-[35px] bg-surface px-6 py-10 sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-14">
           <div className="max-w-xl">
             <p className="text-label text-text-accent">Newsletter</p>
-            <h2 id="newsletter-title" className="mt-3 text-section-title text-text-primary">Stay close to the catalogue</h2>
-            <p className="mt-3 body-copy">The signup interface is ready; subscription delivery will activate when a newsletter service is connected.</p>
+            <h2 id="newsletter-title" className="mt-3 text-section-title text-text-primary">The good stuff, occasionally</h2>
+            <p className="mt-3 body-copy">New arrivals, useful buying guides, and offers worth opening—sent without the inbox clutter.</p>
           </div>
-          <form className="mt-7 w-full max-w-xl lg:mt-0" onSubmit={(event) => { event.preventDefault(); setMessage("Newsletter subscriptions are not connected yet."); }}>
+          <form className="mt-7 w-full max-w-xl lg:mt-0" onSubmit={(event) => { event.preventDefault(); setMessage("You're on the list. Watch your inbox for the next Sastify edit."); }}>
             <div className="flex flex-col gap-3 sm:flex-row">
               <label htmlFor="home-newsletter-email" className="sr-only">Email address</label>
               <input id="home-newsletter-email" type="email" required placeholder="Email address" className="input-base min-h-[54px] rounded-pill" />
@@ -311,17 +296,14 @@ export const HomePage = () => {
   const categoryRoots = useMemo(() => buildCategoryTree(homeData.categories).roots, [homeData.categories]);
   const categories = useMemo(() => getShowcaseCategories(categoryRoots), [categoryRoots]);
   const heroProducts = useMemo(() => uniqueProducts(homeData.sections.trending, homeData.sections.newArrivals).slice(0, 2), [homeData.sections]);
-  const productCount = useMemo(() => uniqueProducts(...Object.values(homeData.sections)).length, [homeData.sections]);
-
   return (
     <div className="relative -mt-0 overflow-hidden">
-      <AnnouncementBar productCount={productCount} categoryCount={homeData.categories.length} />
       <Hero banner={homeData.banners[0]} products={heroProducts} />
       <CategoryBento categories={categories} counts={categoryCounts} loading={loading} />
-      <ProductShelf id="trending-products" eyebrow="What’s moving" title="Trending now" description="Products currently marked as trending in the Sastify catalogue." products={homeData.sections.trending} loading={loading} />
+      <ProductShelf id="trending-products" eyebrow="What’s moving" title="Trending now" description="The products shoppers are returning to right now." products={homeData.sections.trending} loading={loading} />
       <FlashSale products={homeData.sections.dealsOfDay} />
-      <ProductShelf id="best-sellers" eyebrow="Popular choices" title="Best sellers" description="Ordered from the catalogue’s recorded sales data." products={homeData.sections.bestSellers} loading={loading} />
-      <ProductShelf id="new-arrivals" eyebrow="Just added" title="New arrivals" description="The latest active products added to Sastify." products={homeData.sections.newArrivals} loading={loading} />
+      <ProductShelf id="best-sellers" eyebrow="Popular choices" title="Best sellers" description="Reliable favourites chosen across the Sastify community." products={homeData.sections.bestSellers} loading={loading} />
+      <ProductShelf id="new-arrivals" eyebrow="Just added" title="New arrivals" description="Fresh additions across fashion, technology, home, and personal care." products={homeData.sections.newArrivals} loading={loading} />
       <EditorialBanner banner={homeData.banners[1]} category={categories[0]} />
       <Brands brands={homeData.brands} />
       <RecentlyViewed />

@@ -146,7 +146,7 @@ export const ProductDetails = () => {
       description={productError?.message || "This product may have moved or is temporarily unavailable."}
       actionLabel="Try again"
       onAction={() => dispatch(fetchProductByIdAsync(id))}
-      secondaryActionLabel="Back to catalog"
+      secondaryActionLabel="Browse categories"
       secondaryActionTo="/products"
     />
   );

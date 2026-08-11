@@ -90,7 +90,7 @@ export const ProductEditorForm = ({ product, categories, brands, mode = "create"
           <h1 className="text-3xl font-semibold tracking-tight text-textPrimary">
             {mode === "edit" ? "Update product details" : "Launch a new product"}
           </h1>
-          <p className="text-sm text-textSecondary">Manage catalog data without touching pricing or fulfillment logic.</p>
+          <p className="text-sm text-textSecondary">Keep product details, pricing, availability, and presentation accurate.</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

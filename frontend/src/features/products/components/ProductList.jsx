@@ -87,7 +87,7 @@ const FilterPanel = ({ filters, apply, categories, brands, colors, sizes, locked
 
 export const ProductList = ({
   title = "All products",
-  description = "Explore the current catalogue.",
+  description = "Browse products by category, price, brand, and availability.",
   baseFilters: incomingBaseFilters,
   headerContent = null,
   breadcrumbs = [{ label: "Home", to: "/" }, { label: "Products" }],
@@ -170,7 +170,7 @@ export const ProductList = ({
       </nav>
       <header className="rounded-[34px] border border-default bg-surface p-6 shadow-md sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl"><p className="text-label text-brand-primary">Product discovery</p><h1 className="mt-3 text-page-title text-text-primary">{title}</h1>{description ? <p className="mt-4 body-copy">{description}</p> : null}</div>
+          <div className="max-w-3xl"><p className="text-label text-brand-primary">Shop all categories</p><h1 className="mt-3 text-page-title text-text-primary">{title}</h1>{description ? <p className="mt-4 body-copy">{description}</p> : null}</div>
           <div className="flex flex-wrap items-center gap-3"><span className="rounded-pill border border-default bg-surface-muted px-4 py-2 text-sm font-semibold text-text-primary" aria-live="polite">{status === "pending" ? "Updatingâ€¦" : `${totalResults} results`}</span><Button variant="secondary" icon={<FiFilter />} className="xl:hidden" onClick={() => setMobileFiltersOpen(true)}>Filters{chips.length ? ` (${chips.length})` : ""}</Button></div>
         </div>
         {headerContent ? <div className="mt-7 border-t border-default pt-7">{headerContent}</div> : null}

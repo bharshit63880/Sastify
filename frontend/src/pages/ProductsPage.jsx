@@ -3,7 +3,7 @@ import { ProductList } from "../features/products/components/ProductList";
 
 export const ProductsPage = () => (
   <ProductList
-    title="Find Something Worth Keeping."
-    description="Discover pieces you'll love today and keep reaching for tomorrow."
+    title="Shop products that fit your day."
+    description="Compare dependable essentials, useful upgrades, and new finds across every category."
   />
 );

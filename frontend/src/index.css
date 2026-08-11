@@ -187,18 +187,20 @@
   .surface-elevated { @apply rounded-2xl border border-default bg-surface-raised shadow-lg; }
 
   .hero-dimensional-frame {
-    --hero-cut: clamp(18px, 2.8vw, 42px);
     isolation: isolate;
-    filter: drop-shadow(0 28px 42px rgba(9, 14, 42, .3));
+    perspective: 1400px;
+    filter: drop-shadow(0 34px 52px rgba(17, 24, 62, .28));
+    transform: translateZ(0) rotateX(.35deg);
   }
   .hero-dimensional-frame::before {
     content: "";
     position: absolute;
-    inset: 14px -2px -16px 12px;
+    inset: 20px 16px -20px 24px;
     z-index: -2;
-    clip-path: polygon(var(--hero-cut) 0, calc(100% - var(--hero-cut)) 0, 100% var(--hero-cut), 100% calc(100% - var(--hero-cut)), calc(100% - var(--hero-cut)) 100%, var(--hero-cut) 100%, 0 calc(100% - var(--hero-cut)), 0 var(--hero-cut));
-    background: linear-gradient(135deg, #8ba6ff 0%, #5844d8 38%, #18234c 70%, #080d22 100%);
-    box-shadow: inset 1px 1px rgba(255,255,255,.52), inset -14px -16px 28px rgba(0,0,0,.5);
+    border-radius: 46px;
+    background: linear-gradient(135deg, rgba(154, 177, 255, .72), rgba(94, 69, 220, .54) 44%, rgba(10, 19, 48, .72));
+    box-shadow: inset 1px 1px rgba(255,255,255,.5), inset -16px -18px 30px rgba(0,0,0,.3);
+    transform: translateZ(-36px);
   }
   .hero-dimensional-frame::after {
     content: "";
@@ -206,18 +208,29 @@
     inset: 0;
     z-index: 2;
     pointer-events: none;
-    clip-path: polygon(var(--hero-cut) 0, calc(100% - var(--hero-cut)) 0, 100% var(--hero-cut), 100% calc(100% - var(--hero-cut)), calc(100% - var(--hero-cut)) 100%, var(--hero-cut) 100%, 0 calc(100% - var(--hero-cut)), 0 var(--hero-cut));
-    box-shadow: inset 0 0 0 1px rgba(218,225,255,.54), inset 0 2px rgba(255,255,255,.28), inset 0 -12px 24px rgba(5,8,24,.22);
+    border-radius: 42px;
+    box-shadow: inset 0 0 0 1px rgba(232,236,255,.52), inset 0 2px rgba(255,255,255,.3), inset 0 -20px 34px rgba(5,8,24,.2);
   }
   .hero-dimensional-panel {
-    clip-path: polygon(var(--hero-cut) 0, calc(100% - var(--hero-cut)) 0, 100% var(--hero-cut), 100% calc(100% - var(--hero-cut)), calc(100% - var(--hero-cut)) 100%, var(--hero-cut) 100%, 0 calc(100% - var(--hero-cut)), 0 var(--hero-cut));
-    background: #080d22;
+    border: 1px solid rgba(231, 235, 255, .44);
+    border-radius: 42px;
+    background: rgba(8, 13, 34, .76);
+    box-shadow: inset 0 1px rgba(255,255,255,.24), 0 28px 60px rgba(8, 13, 34, .24);
+    backdrop-filter: blur(24px) saturate(135%);
+    -webkit-backdrop-filter: blur(24px) saturate(135%);
+  }
+  .hero-copy-glass {
+    border: 1px solid rgba(255,255,255,.18);
+    background: linear-gradient(135deg, rgba(9,15,38,.62), rgba(27,31,68,.28));
+    box-shadow: inset 0 1px rgba(255,255,255,.18), 0 24px 55px rgba(0,0,0,.24);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
   }
   [data-theme="dark"] .hero-dimensional-frame {
     filter: drop-shadow(0 30px 48px rgba(0,0,0,.56));
   }
   [data-theme="dark"] .hero-dimensional-frame::before {
-    background: linear-gradient(135deg, #7766de, #302b77 42%, #111936 72%, #050817);
+    background: linear-gradient(135deg, rgba(119,102,222,.76), rgba(48,43,119,.68) 42%, rgba(5,8,23,.9));
   }
 
   .editorial-frame {

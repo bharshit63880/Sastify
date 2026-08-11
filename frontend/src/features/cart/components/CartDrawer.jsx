@@ -75,7 +75,7 @@ export const CartDrawer = () => {
         ) : !adapted.length ? (
           <div className="flex min-h-64 flex-col items-center justify-center gap-4 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-2xl text-brand-primary"><FiShoppingBag /></span>
-            <div><p className="text-xl font-semibold text-text-primary">Your cart is empty</p><p className="mt-1 text-small">Explore the catalog to add your first item.</p></div>
+            <div><p className="text-xl font-semibold text-text-primary">Your cart is empty</p><p className="mt-1 text-small">Browse categories and add something you’ll enjoy using.</p></div>
             <Button onClick={() => go("/products")}>Start shopping</Button>
           </div>
         ) : (

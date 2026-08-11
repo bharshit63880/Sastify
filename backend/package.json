@@ -9,6 +9,7 @@
     "seed": "node seed/seed.js",
     "seed:catalog": "node seed/catalog-import/cli.js",
     "seed:catalog:test": "node --test seed/catalog-import/tests/*.test.js",
+    "fix:legacy-images": "node seed/catalog-import/fix-legacy-product-images.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
