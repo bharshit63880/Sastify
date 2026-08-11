@@ -22,7 +22,10 @@ export const CategoryPage = () => {
   const category = useMemo(() => resolveCategoryFromSegments(categories, [slug, parent, child, grandchild]), [categories, slug, parent, child, grandchild]);
   const categoryNode = useMemo(() => getCategoryNode(category, nodesById), [category, nodesById]);
   const leafScope = useMemo(() => categoryNode ? getLeafCategories(categoryNode, nodesById) : emptyArray, [categoryNode, nodesById]);
-  const baseFilters = useMemo(() => ({ category: leafScope.map((item) => item._id) }), [leafScope]);
+  const rootCategory = useMemo(() => categoryNode ? getRootCategory(categoryNode, nodesById) : null, [categoryNode, nodesById]);
+  const baseFilters = useMemo(() => ({
+    category: [...new Set([categoryNode?._id, rootCategory?._id, ...leafScope.map((item) => item._id)].filter(Boolean).map(String))],
+  }), [categoryNode, leafScope, rootCategory]);
   const ancestry = useMemo(() => categoryNode ? [...getCategoryAncestors(categoryNode, nodesById), categoryNode] : emptyArray, [categoryNode, nodesById]);
 
   const relatedCategories = useMemo(() => {
