@@ -64,9 +64,9 @@ const Hero = ({ banner, products }) => {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const mediaY = useTransform(scrollYProgress, [0, 1], ["0%", reduceMotion ? "0%" : "12%"]);
-  const title = banner?.title || "A sharper way to discover what’s next";
-  const subtitle = banner?.subtitle || "Explore the active Sastify catalogue through a clear, considered storefront.";
-  const primaryText = banner?.ctaText || "Explore the catalogue";
+  const title = "Things you didn't know you wanted. Until now.";
+  const subtitle = "From everyday upgrades to unexpected finds — discover something worth adding to your world.";
+  const primaryText = "Discover what's new";
   const primaryLink = banner?.ctaLink || "/products";
 
   return (
@@ -80,14 +80,14 @@ const Hero = ({ banner, products }) => {
       <div className="relative mx-auto flex min-h-[calc(100svh-6.5rem)] w-full max-w-[1440px] items-center px-4 py-20 sm:px-6 lg:px-8">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1fr_.72fr]">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="max-w-4xl">
-            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-white/70">Sastify storefront</motion.p>
+            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-white/70">Curated for the curious</motion.p>
             <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-4xl text-[clamp(3.2rem,8vw,7.8rem)] font-extrabold leading-[.88] tracking-[-.075em] text-white">
               {title}
             </motion.h1>
             <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-xl sm:leading-8">{subtitle}</motion.p>
             <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }} className="mt-9 flex flex-wrap gap-3">
               <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />}>{primaryText}</Button>
-              <Button to="#featured-categories" variant="glass" size="lg">Browse categories</Button>
+              <Button to="#featured-categories" variant="glass" size="lg">Explore categories</Button>
             </motion.div>
           </motion.div>
 
