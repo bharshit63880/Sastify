@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FiImage } from "react-icons/fi";
 import { cn } from "../../utils/cn";
 import { useReducedMotionPreference } from "../../hooks/useReducedMotionPreference";
@@ -20,9 +20,15 @@ export const ImageWithFallback = ({
   ...props
 }) => {
   const [status, setStatus] = useState(src ? "loading" : "error");
+  const previousSrc = useRef(src);
   const reduceMotion = useReducedMotionPreference();
 
-  useEffect(() => setStatus(src ? "loading" : "error"), [src]);
+  useEffect(() => {
+    if (previousSrc.current !== src) {
+      previousSrc.current = src;
+      setStatus(src ? "loading" : "error");
+    }
+  }, [src]);
 
   return (
     <span
