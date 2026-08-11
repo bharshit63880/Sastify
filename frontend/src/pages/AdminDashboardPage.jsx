@@ -99,7 +99,7 @@ export const AdminDashboardPage = () => {
       <div className="space-y-8">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-textPrimary">Admin dashboard</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-textPrimary">Products & catalog</h1>
             <p className="text-sm leading-6 text-textSecondary">
               Clean control over products, categories, users, orders, and offers.
             </p>
@@ -210,7 +210,7 @@ export const AdminDashboardPage = () => {
             </div>
           </section>
 
-          <section className={panelClassName}>
+          <section id="promotions" className={`${panelClassName} scroll-mt-24`}>
             <div className="border-b border-border pb-5">
               <h2 className="text-2xl font-semibold tracking-tight text-textPrimary">Low stock alerts</h2>
               <p className="mt-2 text-sm text-textSecondary">Products that need attention before they run out.</p>
@@ -306,7 +306,7 @@ export const AdminDashboardPage = () => {
             </div>
           </section>
 
-          <section className={panelClassName}>
+          <section id="promotions" className={`${panelClassName} scroll-mt-24`}>
             <div className="border-b border-border pb-5">
               <h2 className="text-2xl font-semibold tracking-tight text-textPrimary">Coupons & offers</h2>
               <p className="mt-2 text-sm text-textSecondary">Create or toggle offers without breaking dashboard flow.</p>
@@ -451,7 +451,7 @@ export const AdminDashboardPage = () => {
             </table>
           </div>
         </section>
-        <section className={panelClassName}>
+        <section id="settings" className={`${panelClassName} scroll-mt-24`}>
           <div className="border-b border-border pb-5"><h2 className="text-2xl font-semibold text-text-primary">Homepage banners</h2><p className="mt-2 text-sm text-text-secondary">Manage only fields supported by the existing banner schema.</p></div>
           <div className="mt-5 grid gap-6 xl:grid-cols-[.8fr_1.2fr]"><div className="grid gap-4"><Input label="Image URL" value={banner.image} onChange={(event) => setBanner((value) => ({ ...value, image: event.target.value }))} /><Input label="Title" value={banner.title} onChange={(event) => setBanner((value) => ({ ...value, title: event.target.value }))} /><Input label="Subtitle" value={banner.subtitle} onChange={(event) => setBanner((value) => ({ ...value, subtitle: event.target.value }))} /><Input label="CTA text" value={banner.ctaText} onChange={(event) => setBanner((value) => ({ ...value, ctaText: event.target.value }))} /><Input label="CTA route" value={banner.ctaLink} onChange={(event) => setBanner((value) => ({ ...value, ctaLink: event.target.value }))} /><Input type="number" label="Priority" value={banner.priority} onChange={(event) => setBanner((value) => ({ ...value, priority: Number(event.target.value) }))} /><label className="flex items-center gap-2 text-sm text-text-primary"><input type="checkbox" checked={banner.isActive} onChange={(event) => setBanner((value) => ({ ...value, isActive: event.target.checked }))} />Active</label><Button disabled={!banner.image || !banner.title} onClick={async () => { await createBanner(banner); setBanner({ image: "", title: "", subtitle: "", ctaText: "", ctaLink: "", priority: 0, isActive: true }); loadDashboard(); }}>Create banner</Button></div><div className="grid gap-3 sm:grid-cols-2">{banners.map((item) => <article key={item._id} className="overflow-hidden rounded-2xl border border-default bg-surface"><img src={item.image} alt="" className="aspect-[16/7] w-full object-cover" loading="lazy" /><div className="p-4"><h3 className="font-semibold text-text-primary">{item.title}</h3><p className="mt-1 text-sm text-text-secondary">{item.subtitle}</p><div className="mt-4 flex flex-wrap gap-2"><Button variant="secondary" onClick={async () => { await updateBanner(item._id, { isActive: !item.isActive }); loadDashboard(); }}>{item.isActive ? "Deactivate" : "Activate"}</Button><Button variant="ghost" onClick={async () => { if (!window.confirm(`Delete banner ${item.title}?`)) return; await deleteBanner(item._id); loadDashboard(); }}>Delete</Button></div></div></article>)}</div></div>
         </section>

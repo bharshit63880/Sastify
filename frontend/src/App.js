@@ -30,6 +30,8 @@ const OtpVerificationPage = lazyNamed(() => import("./pages/OtpVerificationPage"
 const ForgotPasswordPage = lazyNamed(() => import("./pages/ForgotPasswordPage"), "ForgotPasswordPage");
 const ResetPasswordPage = lazyNamed(() => import("./pages/ResetPasswordPage"), "ResetPasswordPage");
 const AdminDashboardPage = lazyNamed(() => import("./pages/AdminDashboardPage"), "AdminDashboardPage");
+const AdminOverviewPage = lazyNamed(() => import("./pages/AdminOverviewPage"), "AdminOverviewPage");
+const AdminInventoryPage = lazyNamed(() => import("./pages/AdminInventoryPage"), "AdminInventoryPage");
 const AdminOrdersPage = lazyNamed(() => import("./pages/AdminOrdersPage"), "AdminOrdersPage");
 const AdminUsersPage = lazyNamed(() => import("./pages/AdminUsersPage"), "AdminUsersPage");
 const AddProductPage = lazyNamed(() => import("./pages/AddProductPage"), "AddProductPage");
@@ -64,7 +66,9 @@ const router = createBrowserRouter(createRoutesFromElements(
       <Route path="/wishlist" element={<Protected><WishlistPage /></Protected>} />
     </Route>
     <Route path="/admin" element={<Protected adminOnly><AdminLayout /></Protected>}>
-      <Route index element={<LazyRoute compact><AdminDashboardPage /></LazyRoute>} />
+      <Route index element={<LazyRoute compact><AdminOverviewPage /></LazyRoute>} />
+      <Route path="products" element={<LazyRoute compact><AdminDashboardPage /></LazyRoute>} />
+      <Route path="inventory" element={<LazyRoute compact><AdminInventoryPage /></LazyRoute>} />
       <Route path="orders" element={<LazyRoute compact><AdminOrdersPage /></LazyRoute>} />
       <Route path="users" element={<LazyRoute compact><AdminUsersPage /></LazyRoute>} />
       <Route path="products/new" element={<LazyRoute compact><AddProductPage /></LazyRoute>} />
