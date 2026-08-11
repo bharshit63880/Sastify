@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AppErrorBoundary } from "../components/AppErrorBoundary";
 import { BackToTop } from "../components/BackToTop";
 import { OfflineBanner } from "../components/OfflineBanner";
@@ -12,7 +11,6 @@ import { MobileNavigation } from "../features/navigation/components/MobileNaviga
 import { Navbar } from "../features/navigation/components/Navbar";
 import { SearchCommand } from "../features/search/components/SearchCommand";
 import { AppShellProvider } from "../features/shell/AppShellContext";
-import { pageTransition, reducedMotionVariants } from "../components/ui/motion";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { DiscoveryProvider } from "../features/discovery/DiscoveryContext";
 import { useDispatch } from "react-redux";
@@ -25,7 +23,6 @@ const QuickViewModal = lazy(() => import("../features/discovery/QuickViewModal")
 export const StorefrontShell = () => {
   const location = useLocation();
   const dispatch = useDispatch();
-  const reduceMotion = useReducedMotion();
   useEffect(() => {
     const privateRoute = ["/account", "/checkout", "/orders", "/wishlist", "/order-success"].some((path) => location.pathname.startsWith(path));
     let robots = document.head.querySelector('meta[name="robots"]');
@@ -47,13 +44,9 @@ export const StorefrontShell = () => {
         <Navbar />
         <main className="relative min-h-[70vh]" id="main-content">
           <AppErrorBoundary>
-            <AnimatePresence mode="sync" initial={false}>
-              <motion.div key={location.pathname} variants={reduceMotion ? reducedMotionVariants : pageTransition} initial="hidden" animate="visible" exit="exit">
-                <Suspense fallback={<RouteFallback />}>
-                  <Outlet />
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
+            <Suspense fallback={<RouteFallback />}>
+              <Outlet />
+            </Suspense>
           </AppErrorBoundary>
         </main>
         <Footer />
