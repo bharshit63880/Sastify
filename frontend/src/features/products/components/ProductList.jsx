@@ -185,9 +185,9 @@ export const ProductList = ({
                 {chips.length ? chips.map((chip) => <button key={`${chip.key}-${chip.value || chip.label}`} type="button" onClick={() => removeChip(chip)} className="inline-flex items-center gap-2 rounded-pill border border-default bg-surface-muted px-3 py-2 text-sm text-text-primary hover:border-strong">{chip.label}<FiX aria-hidden="true" /></button>) : <span className="py-2 text-sm text-text-secondary">No filters applied</span>}
                 {chips.length ? <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary"><FiRotateCcw />Clear all</button> : null}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full min-w-0 items-center gap-2 lg:w-auto">
                 <label className="sr-only" htmlFor="discovery-sort">Sort products</label>
-                <select id="discovery-sort" value={filters.sort} onChange={(event) => apply({ sort: event.target.value })} className="input-base min-w-48 py-2.5">{sortOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+                <select id="discovery-sort" value={filters.sort} onChange={(event) => apply({ sort: event.target.value })} className="input-base min-w-0 flex-1 py-2.5 sm:min-w-48 lg:flex-none">{sortOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
                 <div className="inline-flex rounded-pill border border-default bg-surface-muted p-1" aria-label="Product view">
                   <IconButton label="Grid view" size="sm" aria-pressed={filters.view === "grid"} onClick={() => apply({ view: "grid" }, { resetPage: false })} className={filters.view === "grid" ? "bg-surface-raised text-brand-primary shadow-xs" : ""}><FiGrid /></IconButton>
                   <IconButton label="List view" size="sm" aria-pressed={filters.view === "list"} onClick={() => apply({ view: "list" }, { resetPage: false })} className={filters.view === "list" ? "bg-surface-raised text-brand-primary shadow-xs" : ""}><FiList /></IconButton>

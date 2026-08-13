@@ -63,7 +63,7 @@ export const AdminLayout = () => {
     <ScrollToTop />
     <div className="flex min-h-screen">
       <div className="sticky top-0 hidden h-screen shrink-0 lg:block">{sidebar}</div>
-      <AnimatePresence>{open ? <motion.div className="fixed inset-0 z-50 bg-black/55 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)}><motion.div className="h-full w-[272px]" initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} onClick={(event) => event.stopPropagation()}>{sidebar}<button type="button" className="absolute left-[286px] top-4 grid h-10 w-10 place-items-center rounded-full bg-white text-black" onClick={() => setOpen(false)}><FiX /></button></motion.div></motion.div> : null}</AnimatePresence>
+      <AnimatePresence>{open ? <motion.div className="fixed inset-0 z-50 bg-black/55 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)}><motion.div className="relative h-full w-[min(272px,calc(100vw-56px))]" initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} onClick={(event) => event.stopPropagation()}>{sidebar}<button type="button" className="absolute -right-12 top-4 grid h-10 w-10 place-items-center rounded-full bg-white text-black" onClick={() => setOpen(false)}><FiX /></button></motion.div></motion.div> : null}</AnimatePresence>
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 border-b border-[#e5dfd5] bg-[#fbfaf7]/95 backdrop-blur-xl">
           <div className="flex min-h-[76px] items-center gap-4 px-4 sm:px-7">
@@ -73,7 +73,7 @@ export const AdminLayout = () => {
             <div className="hidden items-center gap-3 sm:flex"><span className="grid h-11 w-11 place-items-center rounded-full bg-[#efe3ca] font-bold text-[#8a662a]">{(user?.name || "A").charAt(0).toUpperCase()}</span><div><p className="text-sm font-bold">Hi, {user?.name?.split(" ")[0] || "Admin"}</p><p className="text-xs text-[#777b83]">Store administrator</p></div></div>
           </div>
         </header>
-        <main className="px-4 py-6 sm:px-7 lg:py-7"><Outlet /></main>
+        <main className="min-w-0 overflow-x-clip px-3 py-5 sm:px-7 sm:py-6 lg:py-7"><Outlet /></main>
       </div>
     </div>
   </div>;

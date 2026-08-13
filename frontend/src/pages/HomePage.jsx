@@ -55,23 +55,23 @@ const Hero = ({ banner, products }) => {
   const primaryLink = banner?.ctaLink || "/products";
 
   return (
-    <div className="hero-dimensional-frame relative mx-3 mb-8 mt-4 sm:mx-5 lg:mx-8">
+    <div className="hero-dimensional-frame relative mx-2 mb-8 mt-3 sm:mx-5 sm:mt-4 lg:mx-8">
       <section ref={ref} className="hero-dimensional-panel relative min-h-[calc(100svh-8rem)] overflow-hidden" aria-labelledby="home-hero-title">
       <motion.div style={{ y: mediaY }} className="absolute inset-0 -top-[12%] h-[124%]">
         <HomeMedia banner={{ image: FALLBACK_HERO }} fallback={FALLBACK_HERO} alt="" eager className="h-full w-full object-cover" />
       </motion.div>
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,253,249,.96)_0%,rgba(255,252,246,.72)_39%,rgba(255,252,246,.08)_63%,transparent_100%)]" />
-      <div className="relative mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-[1440px] items-center px-4 py-16 sm:px-7 lg:px-10">
+      <div className="relative mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-[1440px] items-center px-4 py-12 sm:px-7 sm:py-16 lg:px-10">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1fr_.72fr]">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.09 } } }} className="max-w-3xl py-6 sm:py-9 lg:py-11">
             <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} className="text-label text-[#b38a3d]">Curated for the curious</motion.p>
-            <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-5 max-w-3xl text-[clamp(3.1rem,6.8vw,7rem)] font-extrabold leading-[.9] tracking-[-.07em] text-[#171b22]">
+            <motion.h1 id="home-hero-title" variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }} className="mt-4 max-w-3xl text-[clamp(2.55rem,13vw,7rem)] font-extrabold leading-[.94] tracking-[-.055em] text-[#171b22] sm:mt-5 sm:leading-[.9] sm:tracking-[-.07em]">
               {title}
             </motion.h1>
             <motion.p variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mt-7 max-w-xl text-base leading-7 text-[#646a76] sm:text-xl sm:leading-8">{subtitle}</motion.p>
-            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }} className="mt-9 flex flex-wrap gap-3">
-              <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />} className="hero-primary-cta">{primaryText}</Button>
-              <Button to="#featured-categories" variant="glass" size="lg" className="hero-secondary-cta">Explore categories</Button>
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }} className="mt-8 grid w-full gap-3 min-[420px]:flex min-[420px]:flex-wrap sm:mt-9">
+              <Button to={primaryLink} variant="gradient" size="lg" rightIcon={<FiArrowRight />} className="hero-primary-cta w-full min-[420px]:w-auto">{primaryText}</Button>
+              <Button to="#featured-categories" variant="glass" size="lg" className="hero-secondary-cta w-full min-[420px]:w-auto">Explore categories</Button>
             </motion.div>
           </motion.div>
 
@@ -88,7 +88,7 @@ const Hero = ({ banner, products }) => {
           </div>
         </div>
       </div>
-      <motion.a href="#featured-categories" className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-[#757a84]" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
+      <motion.a href="#featured-categories" className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs font-medium uppercase tracking-[.2em] text-[#757a84] sm:bottom-7 sm:flex" animate={reduceMotion ? undefined : { y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
         Scroll <FiArrowDown />
       </motion.a>
       </section>

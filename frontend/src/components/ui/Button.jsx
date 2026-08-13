@@ -44,7 +44,7 @@ export const Button = React.forwardRef(({
   const reduceMotion = useReducedMotion();
   const isDisabled = disabled || loading;
   const sharedClassName = cn(
-    "inline-flex items-center justify-center gap-2 rounded-pill font-semibold tracking-[-0.01em]",
+    "inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-pill text-center font-semibold tracking-[-0.01em]",
     "transition-[color,background-color,border-color,box-shadow,filter,transform] duration-normal ease-standard",
     "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/25",
     variants[variant] || variants.primary,
@@ -57,7 +57,7 @@ export const Button = React.forwardRef(({
   const content = (
     <>
       {loading ? <Spinner /> : (leftIcon || icon) ? <span className="shrink-0 text-base" aria-hidden="true">{leftIcon || icon}</span> : null}
-      {children != null ? <span>{children}</span> : null}
+      {children != null ? <span className="min-w-0">{children}</span> : null}
       {rightIcon ? <span className="shrink-0 text-base" aria-hidden="true">{rightIcon}</span> : null}
     </>
   );
