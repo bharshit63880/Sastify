@@ -138,7 +138,8 @@
   img, picture, video, canvas, svg { display: block; max-width: 100%; }
   #root { width: 100%; min-width: 0; max-width: 100%; overflow-x: clip; }
   main, section, article, aside, header, footer, nav, form, fieldset { min-width: 0; }
-  h1, h2, h3, h4, p, a, button, label, span { overflow-wrap: anywhere; }
+  h1, h2, h3, h4, p, label { overflow-wrap: anywhere; }
+  a, button, span { overflow-wrap: normal; word-break: normal; }
   button, input, textarea, select { font: inherit; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
   :disabled, [aria-disabled="true"] { cursor: not-allowed; }

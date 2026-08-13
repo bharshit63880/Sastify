@@ -169,15 +169,15 @@ export const ProductDetails = () => {
       </div>
       {product.colors?.length ? <fieldset aria-describedby={errors.color ? "color-error" : undefined}><legend className="text-label text-text-secondary">Color</legend><div className="mt-3 flex flex-wrap gap-2">{product.colors.map((item) => <button key={item} type="button" aria-pressed={color === item} onClick={() => { setColor(item); setErrors((value) => ({ ...value, color: undefined })); }} className={`rounded-pill border px-4 py-2 text-sm font-semibold ${color === item ? "border-brand-primary bg-brand-primary text-white" : "border-default bg-surface-raised text-text-primary"}`}>{item}</button>)}</div>{errors.color ? <p id="color-error" role="alert" className="mt-2 text-sm text-error">{errors.color}</p> : null}</fieldset> : null}
       {product.sizes?.length ? <fieldset aria-describedby={errors.size ? "size-error" : undefined}><legend className="text-label text-text-secondary">Size</legend><div className="mt-3 flex flex-wrap gap-2">{product.sizes.map((item) => <button key={item} type="button" aria-pressed={size === item} onClick={() => { setSize(item); setErrors((value) => ({ ...value, size: undefined })); }} className={`min-w-12 rounded-pill border px-4 py-2 text-sm font-semibold ${size === item ? "border-brand-primary bg-brand-primary text-white" : "border-default bg-surface-raised text-text-primary"}`}>{item}</button>)}</div>{errors.size ? <p id="size-error" role="alert" className="mt-2 text-sm text-error">{errors.size}</p> : null}</fieldset> : null}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="neumorphic-control inline-flex items-center rounded-pill p-1">
+      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[auto_1fr_1fr_auto]">
+        <div className="neumorphic-control col-span-2 inline-flex w-full items-center justify-between rounded-pill p-1 sm:col-span-1 sm:w-auto">
           <button aria-label="Decrease quantity" type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="grid h-10 w-10 place-items-center rounded-full text-text-primary"><FiMinus /></button>
           <span className="min-w-10 text-center font-semibold text-text-primary" aria-live="polite">{quantity}</span>
           <button aria-label="Increase quantity" type="button" disabled={quantity >= stock} onClick={() => setQuantity((value) => Math.min(stock, value + 1))} className="grid h-10 w-10 place-items-center rounded-full text-text-primary disabled:opacity-40"><FiPlus /></button>
         </div>
-        <Button onClick={() => purchase(false)} disabled={!stock} icon={<FiShoppingBag />} className="flex-1">Add to cart</Button>
-        <Button onClick={() => purchase(true)} disabled={!stock} variant="secondary" className="flex-1">Buy now</Button>
-        <Button onClick={toggleWishlist} variant="ghost" aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}><FiHeart className={isWishlisted ? "fill-error text-error" : ""} /></Button>
+        <Button onClick={() => purchase(false)} disabled={!stock} icon={<FiShoppingBag />} className="w-full px-3 sm:w-auto">Add to cart</Button>
+        <Button onClick={() => purchase(true)} disabled={!stock} variant="secondary" className="w-full px-3 sm:w-auto">Buy now</Button>
+        <Button onClick={toggleWishlist} variant="ghost" aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"} className="col-span-2 justify-self-start sm:col-span-1 sm:justify-self-auto"><FiHeart className={isWishlisted ? "fill-error text-error" : ""} /></Button>
       </div>
       {errors.stock || errors.quantity ? <p role="alert" className="text-sm text-error">{errors.stock || errors.quantity}</p> : null}
       <div className="grid gap-3 sm:grid-cols-2">
@@ -199,8 +199,8 @@ export const ProductDetails = () => {
       <section id="reviews" className="scroll-mt-28 mt-10 rounded-2xl border border-default bg-surface p-6 sm:p-8"><h2 className="mb-8 text-3xl font-semibold tracking-tight text-text-primary">Customer reviews</h2><ReviewExperience reviews={reviews} status={reviewStatus} error={reviewError} averageRating={product.rating || product.ratingAverage} /></section>
       {product.relatedProducts?.length ? <section className="mt-12"><ProductShelf id="similar-products" eyebrow="Discover more" title="Similar products" products={product.relatedProducts} /></section> : null}
       {recent.length ? <section className="mt-12"><ProductShelf id="recently-viewed-product" eyebrow="Continue exploring" title="Recently viewed" products={recent} /></section> : null}
-      <div className="fixed inset-x-0 bottom-0 z-sticky border-t border-default bg-surface-glass px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-[auto_1fr_1fr] items-center gap-2"><strong className="pr-2 text-lg text-text-primary">{formatPrice(product.price)}</strong><Button onClick={() => purchase(false)} disabled={!stock}>Add to cart</Button><Button onClick={() => purchase(true)} disabled={!stock} variant="secondary">Buy now</Button></div>
+      <div className="fixed inset-x-0 bottom-[5.75rem] z-sticky border-t border-default bg-surface-glass px-3 py-2 backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-2 items-center gap-2 min-[390px]:grid-cols-[auto_1fr_1fr]"><strong className="col-span-2 text-center text-base text-text-primary min-[390px]:col-span-1 min-[390px]:text-left">{formatPrice(product.price)}</strong><Button onClick={() => purchase(false)} disabled={!stock} className="px-3 text-xs min-[390px]:text-sm">Add to cart</Button><Button onClick={() => purchase(true)} disabled={!stock} variant="secondary" className="px-3 text-xs min-[390px]:text-sm">Buy now</Button></div>
       </div>
       <span className="sr-only" role="status" aria-live="polite">{shared ? "Product link copied" : ""}</span>
     </PageWrapper>

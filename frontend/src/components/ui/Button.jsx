@@ -57,7 +57,7 @@ export const Button = React.forwardRef(({
   const content = (
     <>
       {loading ? <Spinner /> : (leftIcon || icon) ? <span className="shrink-0 text-base" aria-hidden="true">{leftIcon || icon}</span> : null}
-      {children != null ? <span className="min-w-0">{children}</span> : null}
+      {children != null ? <span className="min-w-0 whitespace-nowrap">{children}</span> : null}
       {rightIcon ? <span className="shrink-0 text-base" aria-hidden="true">{rightIcon}</span> : null}
     </>
   );
