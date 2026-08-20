@@ -64,14 +64,15 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
       layout
       initial={{ opacity: 0, y: reduceMotion ? 0 : 14 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={reduceMotion ? undefined : { y: -5 }}
+      whileHover={reduceMotion ? undefined : { y: -7, scale: 1.008 }}
       onHoverStart={prepareAlternate}
       onFocusCapture={prepareAlternate}
-      className={`group relative overflow-hidden rounded-[28px] border border-default bg-surface shadow-sm transition-shadow hover:shadow-lg ${isList ? "grid sm:grid-cols-[230px_1fr]" : "flex h-full flex-col"}`}
+      className={`group relative isolate overflow-hidden rounded-[32px] border border-white/70 bg-surface-glass shadow-[0_18px_45px_rgba(67,49,23,.12),0_4px_14px_rgba(67,49,23,.08),inset_0_1px_0_rgba(255,255,255,.9)] backdrop-blur-xl transition-[box-shadow,border-color] hover:border-brand-primary/30 hover:shadow-[0_28px_65px_rgba(67,49,23,.2),0_8px_22px_rgba(67,49,23,.1),inset_0_1px_0_rgba(255,255,255,.95)] ${isList ? "grid sm:grid-cols-[210px_1fr]" : "flex h-full flex-col"}`}
     >
-      <div ref={imageRef} className={`relative overflow-hidden bg-surface-muted ${isList ? "min-h-64" : ""}`}>
+      <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 z-0 h-28 w-28 rounded-full bg-brand-primary/10 blur-2xl" />
+      <div ref={imageRef} className={`relative z-[1] overflow-hidden bg-surface-muted ${isList ? "min-h-56" : "m-2 mb-0 rounded-[25px]"}`}>
         <Link to={`/products/${product.slug || product._id}`} aria-label={`View ${label}`}>
-          <div className={isList ? "h-full min-h-64" : "aspect-[4/4.7]"}>
+          <div className={isList ? "h-full min-h-56" : "aspect-[4/3.55]"}>
             <ImageWithFallback src={primary} fallback={fallback} alt={label} width={520} height={610} wrapperClassName="h-full w-full" className={`object-cover ${!secondary && !reduceMotion ? "transition-transform duration-500 group-hover:scale-105" : ""}`} />
             {secondary && intent ? <img src={secondary} alt="" loading="lazy" aria-hidden="true" className={`absolute inset-0 h-full w-full object-cover opacity-0 ${reduceMotion ? "" : "transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100"}`} /> : null}
           </div>
@@ -89,16 +90,16 @@ const ProductCardComponent = ({ product, variant = "grid" }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+      <div className="relative z-[1] flex flex-1 flex-col gap-2.5 p-4">
         {brand ? <p className="text-label line-clamp-1 text-text-secondary">{brand}</p> : null}
-        <Link to={`/products/${product.slug || product._id}`} className="line-clamp-2 text-[1.02rem] font-semibold leading-6 text-text-primary hover:text-brand-primary">{label}</Link>
+        <Link to={`/products/${product.slug || product._id}`} className="line-clamp-2 text-[.98rem] font-semibold leading-5 text-text-primary hover:text-brand-primary">{label}</Link>
         <div className="flex flex-wrap items-center gap-2 text-sm text-text-secondary">
           <span className="inline-flex items-center gap-1 font-semibold text-text-primary"><FiStar className="fill-current text-warning" />{rating.toFixed(1)}</span>
           <span aria-label={`${reviews} reviews`}>({reviews})</span>
         </div>
         {product.colors?.length ? <div className="flex items-center gap-1.5" aria-label={`Available colors: ${product.colors.join(", ")}`}>{product.colors.slice(0, 5).map((color) => <span key={color} title={color} className="h-4 w-4 rounded-full border border-strong shadow-xs" style={{ backgroundColor: colorMap[String(color).toLowerCase()] || color }} />)}{product.colors.length > 5 ? <span className="text-xs text-text-secondary">+{product.colors.length - 5}</span> : null}</div> : null}
         <div className="mt-auto flex flex-wrap items-end gap-x-3 gap-y-1">
-          <strong className="text-2xl tracking-[-.035em] text-text-primary">{formatPrice(price)}</strong>
+          <strong className="text-xl tracking-[-.035em] text-text-primary">{formatPrice(price)}</strong>
           {originalPrice > price ? <span className="pb-0.5 text-sm text-text-secondary line-through">{formatPrice(originalPrice)}</span> : null}
         </div>
         <div className={`grid gap-2 ${isList ? "sm:grid-cols-2" : ""}`}>

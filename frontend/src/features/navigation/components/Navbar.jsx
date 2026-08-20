@@ -31,6 +31,7 @@ export const Navbar = () => {
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const accountRef = useRef(null);
+  const navbarRef = useRef(null);
   const roots = useMemo(() => buildCategoryTree(categories).roots, [categories]);
   const count = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
@@ -61,7 +62,10 @@ export const Navbar = () => {
         setCategoriesOpen(false); setAccountOpen(false); openOverlay("search");
       }
     };
-    const outside = (event) => accountRef.current && !accountRef.current.contains(event.target) && setAccountOpen(false);
+    const outside = (event) => {
+      if (accountRef.current && !accountRef.current.contains(event.target)) setAccountOpen(false);
+      if (navbarRef.current && !navbarRef.current.contains(event.target)) setCategoriesOpen(false);
+    };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", outside);
     return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", outside); };
@@ -79,7 +83,7 @@ export const Navbar = () => {
     <>
       <header className="fixed inset-x-0 top-0 z-sticky border-b border-transparent bg-page/70 px-2 py-2 backdrop-blur-md supports-[backdrop-filter]:bg-page/60 sm:px-3">
         <Container className="relative">
-          <motion.div layout className={`relative flex items-center gap-2 overflow-visible rounded-2xl border px-2.5 transition-[padding,background-color,border-color,box-shadow,transform] duration-normal sm:px-4 ${scrolled || location.pathname !== "/" ? "border-glass bg-glass py-2 shadow-glass backdrop-blur-2xl" : "border-default/70 bg-surface/90 py-2.5 shadow-sm backdrop-blur-xl"}`}>
+          <motion.div ref={navbarRef} layout className={`relative flex items-center gap-2 overflow-visible rounded-2xl border px-2.5 transition-[padding,background-color,border-color,box-shadow,transform] duration-normal sm:px-4 ${scrolled || location.pathname !== "/" ? "border-glass bg-glass py-2 shadow-glass backdrop-blur-2xl" : "border-default/70 bg-surface/90 py-2.5 shadow-sm backdrop-blur-xl"}`}>
             <span className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-brand-primary/70 to-transparent" aria-hidden="true" />
             <IconButton label="Open navigation menu" className="lg:hidden" onClick={() => openGlobal("mobile-menu")}><FiMenu /></IconButton>
             <NavbarLogo />

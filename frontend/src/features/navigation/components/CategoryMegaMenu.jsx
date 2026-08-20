@@ -6,7 +6,7 @@ export const CategoryMegaMenu = ({ open, roots, onClose }) => {
   if (!open) return null;
   return (
     <div id="category-mega-menu" className="absolute inset-x-0 top-full hidden px-4 pt-3 lg:block">
-      <div className="mx-auto grid max-w-[1080px] grid-cols-3 gap-6 rounded-2xl border border-glass bg-glass p-6 shadow-lg backdrop-blur-2xl xl:grid-cols-4">
+      <div className="mx-auto grid max-w-[1080px] grid-cols-3 gap-6 rounded-[28px] border border-white/70 bg-surface-glass p-6 shadow-[0_24px_65px_rgba(67,49,23,.18),inset_0_1px_0_rgba(255,255,255,.9)] backdrop-blur-2xl xl:grid-cols-4">
         {roots.slice(0, 8).map((root) => (
           <section key={root._id}>
             <Link to={getCategoryHref(root)} onClick={onClose} className="font-semibold text-text-primary hover:text-brand-primary">{root.name}</Link>
